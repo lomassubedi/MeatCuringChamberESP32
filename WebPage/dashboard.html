@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<title>Chamber Control</title>
+</head>
+
+<style>	
+	header, footer {
+		padding: 1em;
+		color: white;
+		background-color: green;
+		clear: left;
+		text-align: center;
+	}
+	nav {		
+		float: left;
+		border-right: thik soli #ff0000;
+		max-width: 160px;
+		margin: 20px;
+		padding: 1em;
+	}
+	.controlTmpHum, .readTempHum {
+		float: center
+/*	    margin-left: 170px;
+	    border-left: 2px solid gray;*/
+	    padding: 1em;
+	    overflow: hidden;		
+	}		
+</style>
+
+<body>
+	<header><h1> Meat Curing Chamber Dashboard </h1></header>
+
+
+	<div class="enableDisableDevice">
+		<nav>
+			<form id="checkDev">Device Control<br>
+				<input type="checkbox" name="freezer" value="0">Freezer<br>
+				<input type="checkbox" name="humidifier" value="0">Humidifier<br>
+				<input type="checkbox" name="deHumidifier" value="0">Dehumidifier<br>
+				<input type="checkbox" name="heater" value="0">Heater<br>
+				<input type="checkbox" name="internalFan" value="0">Internal Fan<br>
+				<input type="checkbox" name="freshAirFan" value="0">Fresh air fan<br>
+				<input type="checkbox" name="dev7" value="0">Device 7<br>
+				<input type="checkbox" name="dev8" value="0">Device 8<br>
+			</form>
+		</nav>
+	</div>
+
+	<div class="controlTmpHum">
+		<br>
+		<form">
+			Set Humidity: <input type="text" name="setHumidity">
+			Set Temperature: <input type="text" name="setTemperature"">
+			<input type="submit" value="Set new value">
+		</form>
+	</div>
+
+	<div class="readTempHum">
+		<br>
+		<form">
+			Current Humidity: <input type="text" name="curHumidity">
+			Current Temperature: <input type="text" name="curTemperature"">
+		</form>
+	</div>
+
+	<footer>
+		<p>
+			Copyright &copy <i>Keyl Schaub, 2018</i>
+		</p>
+	</footer>
+
+</body>
+</html>
