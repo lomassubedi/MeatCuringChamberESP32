@@ -1,0 +1,132 @@
+#include <WiFiClient.h>
+#include <ESP32WebServer.h>
+#include <WiFi.h>
+#include <ESPmDNS.h>
+
+const char* ssid = "internets";
+const char* password = "CLFA4ABD38";
+
+ESP32WebServer server ( 80 );
+
+const int led = 13;
+
+/* this array contains the web will be responded to client
+it uses jquery for making GET request and processing slider UI control */
+char res[2048]=
+"<!DOCTYPE html>\
+<html>\
+<head>\
+<title>Chamber Control</title>\
+</head>\
+<style> \
+  header, footer {\
+    padding: 1em;\
+    color: white;\
+    background-color: green;\
+    clear: left;\
+    text-align: center;\
+  }\
+  nav {   \
+    float: left;\
+    border-right: thik soli #ff0000;\
+    max-width: 160px;\
+    margin: 20px;\
+    padding: 1em;\
+  }\
+  .controlTmpHum, .readTempHum {\
+    float: center\
+      padding: 1em;\
+      overflow: hidden;   \
+  }   \
+</style>\
+<body>\
+  <header><h1> Meat Curing Chamber Dashboard </h1></header>\
+  <div class='enableDisableDevice'>\
+    <nav>\
+      <form id='checkDev'>Device Control<br>\
+        <input type='checkbox' name='freezer' value='0'>Freezer<br>\
+        <input type='checkbox' name='humidifier' value='0'>Humidifier<br>\
+        <input type='checkbox' name='deHumidifier' value='0'>Dehumidifier<br>\
+        <input type='checkbox' name='heater' value='0'>Heater<br>\
+        <input type='checkbox' name='internalFan' value='0'>Internal Fan<br>\
+        <input type='checkbox' name='freshAirFan' value='0'>Fresh air fan<br>\
+        <input type='checkbox' name='dev7' value='0'>Device 7<br>\
+        <input type='checkbox' name='dev8' value='0'>Device 8<br>\
+      </form>\
+    </nav>\
+  </div>\
+  <div class='controlTmpHum'>\
+    <br>\
+    <form'>\
+      Set Humidity: <input type='text' name='setHumidity'>\
+      <br>\
+      <br>\
+      Set Temperature: <input type='text' name='setTemperature'>\
+      <br>\
+      <br>\
+      <input type='submit' value='Save'>\
+    </form>\
+  </div>\
+  <div class='readTempHum'>\
+    <br>\
+      Current Humidity: \
+      <script type='text/javascript'>\
+      document.write('80')\
+      </script> % </p> \
+  </div>\
+  <div>\
+    <p>Current Temperature: \
+    <script type='text/javascript'>\
+      document.write('23')\
+      </script> &degF</p> \
+  </div>\
+  <footer>\
+    <p>\
+      Copyright &copy <i>Keyl Schaub, 2018</i>\
+    </p>\
+  </footer>\
+</body>\
+</html>";
+
+void handleRoot() {
+  server.send(200, "text/html", res);
+}
+
+void handleNotFound(){
+  String message = "File Not Found\n\n";
+  server.send(404, "text/plain", message);
+}
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+  Serial.println("");
+  
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  Serial.println("");
+  Serial.print("Connected to ");
+  Serial.println(ssid);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  
+  if (MDNS.begin("esp32")) {
+    Serial.println("MDNS responder started");
+  }
+  
+  server.on("/", handleRoot);
+  
+  server.onNotFound(handleNotFound);
+  server.begin();
+  Serial.println("HTTP server started");
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+}
