@@ -1,3 +1,9 @@
+/* 
+ * Project : Meat Curing Chamber Controller  
+ * Author : Lomas Subedi 
+ * Controller : ESP WROOM - 32
+ */
+
 #include <WiFiClient.h>
 #include <ESP32WebServer.h>
 #include <WiFi.h>
@@ -67,14 +73,14 @@ char res[2048]=
       <input type='submit' value='Save'>\
     </form>\
   </div>\
-  <div class='readTempHum'>\
+  <div class='readHum'>\
     <br>\
       Current Humidity: \
       <script type='text/javascript'>\
       document.write('80')\
       </script> % </p> \
   </div>\
-  <div>\
+  <div class='readTemp'>\
     <p>Current Temperature: \
     <script type='text/javascript'>\
       document.write('23')\
@@ -127,6 +133,5 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  server.handleClient();
 }
