@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "gdb",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "name": "PlatformIO Debugger",
+            "target": "c:/Users/hong1/Documents/Study/PROJECTS/keyl_chamberCtrl/Meat-Curing-Chamber/esp32_web_serv/.pioenvs/esp32doit-devkit-v1/firmware.elf",
+            "gdbpath": "C:/Users/hong1/.platformio/penv/Scripts/piodebuggdb",
+            "autorun": [ "source .pioinit" ],
+            "preLaunchTask": "PlatformIO: Pre-Debug",
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ]
+}
