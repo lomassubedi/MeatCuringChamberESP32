@@ -8,10 +8,14 @@
 #include <WiFiClient.h>
 #include "SD.h"
 
+
+#define     REQ_BUF_SZ      100
+
 const char* ssid = "internets";
 const char* password = "CLFA4ABD38";
 
-const int led = 13;
+const int freezer = 2;
+bool freezerStatus = false;
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -20,7 +24,70 @@ WiFiServer server(80);
 File webFile; 
 
 // Variable to store the HTTP request
-String header;
+char httpReq[REQ_BUF_SZ] = {0}; // buffered HTTP request stored as null terminated string
+char reqIndex = 0;              // index into HTTP_req buffer
+
+// searches for the string sfind in the string str
+// returns 1 if string found
+// returns 0 if string not found
+char StrContains(char *str, char *sfind)
+{
+    char found = 0;
+    char index = 0;
+    char len;
+
+    len = strlen(str);
+    
+    if (strlen(sfind) > len) {
+        return 0;
+    }
+    while (index < len) {
+        if (str[index] == sfind[found]) {
+            found++;
+            if (strlen(sfind) == found) {
+                return 1;
+            }
+        }
+        else {
+            found = 0;
+        }
+        index++;
+    }
+
+    return 0;
+}
+
+void setNewControls() {
+  if (StrContains(httpReq, "freezer=1")) {
+    freezerStatus = true;
+    digitalWrite(freezer, HIGH);
+  } else if(StrContains(httpReq, "freezer=0")) {
+    freezerStatus = false;
+    digitalWrite(freezer, LOW);
+  }
+
+}
+// Send XML file with sensor readings
+void sendXMLFile(WiFiClient cl) {
+
+  cl.print("<?xml version = \"1.0\" ?>");
+  cl.print("<output>");    
+
+  // Check Box Device status
+  // For Lamp 1
+  cl.print("<freezer>");
+
+  if (freezerStatus) {
+    cl.print("checked");
+  } else {
+    cl.print("unchecked");
+  }
+
+  cl.println("</freezer>");
+
+  cl.print("</output>");
+
+}
 
 void setup() {
 
@@ -28,8 +95,10 @@ void setup() {
 
   // Setup SD card
   if(!SD.begin()){
-      Serial.println("Card Mount Failed");
-      return;
+    Serial.println("Card Mount Failed");
+    return;
+  } else {
+    Serial.println("SD card successfully mounted !!!");
   }
 
   uint8_t cardType = SD.cardType();
@@ -55,6 +124,9 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   server.begin();
+
+  pinMode(freezer, OUTPUT);
+  digitalWrite(freezer, LOW);
 }
 
 void loop() {
@@ -65,23 +137,37 @@ void loop() {
     while (client.connected()) {
       if (client.available()) {   // client data available to read
         char c = client.read(); // read 1 byte (character) from client
-        header += c;
+
+        if (reqIndex < (REQ_BUF_SZ - 1)) {
+        httpReq[reqIndex] = c;          // save HTTP request character
+        reqIndex++;
+        }
+
         // if the current line is blank, you got two newline characters in a row.
         // that's the end of the client HTTP request, so send a response:
         if (c == '\n' && currentLineIsBlank) {
+
           // send a standard http response header
           client.println("HTTP/1.1 200 OK");
+
+          Serial.println("Just entered current line is blank!!");
+          Serial.println(httpReq);
+
           // Send XML file or Web page
           // If client already on the web page, browser requests with AJAX the latest
           // sensor readings (ESP32 sends the XML file)
-          if (header.indexOf("update_readings") >= 0) {
+          if (StrContains(httpReq, "updateData")) {
+            Serial.println("I am here !!");
             // send rest of HTTP header
             client.println("Content-Type: text/xml");
             client.println("Connection: keep-alive");
             client.println();
+            
+            setNewControls();
             // Send XML file with sensor readings
-            // sendXMLFile(client);
+            sendXMLFile(client);
           }
+
           // When the client connects for the first time, send it the index.html file
           // stored in the microSD card
           else {  
@@ -89,6 +175,7 @@ void loop() {
             client.println("Content-Type: text/html");
             client.println("Connection: keep-alive");
             client.println();
+
             // send web page stored in microSD card
             webFile = SD.open("/dashboard.html");
             if (webFile) {
@@ -112,12 +199,11 @@ void loop() {
           currentLineIsBlank = false;
         }
         } // end if (client.available())
+      // Serial.println(header);
     } // end while (client.connected())
     // Clear the header variable
-    header = "";
     // Close the connection
     client.stop();
-    Serial.println("Client disconnected.");
+    Serial.println("Client disconnected.");    
   } // end if (client)
 }   
-

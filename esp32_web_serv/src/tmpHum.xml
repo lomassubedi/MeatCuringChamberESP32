@@ -1,0 +1,23 @@
+<tempHumCtrl>
+    <output>
+        <freezer> </freezer>
+        <humidifier> </humidifier>
+        <dehumidifier> </dehumidifier>
+        <heater></heater>
+        <internalFan></internalFan>
+        <freshAirFan></freshAirFan>
+        <device7></device7>
+        <device8></device8>
+    </output>
+    
+    <setTmpHum>
+        <humNew></humNew>
+        <tmpNew></tmpNew>
+    </setTmpHum>
+
+    <getTmpHum>
+        <tmpNow> </tmpNow>
+        <humNow></humNow>
+    </getTmpHum>
+    
+</tempHumCtrl>
