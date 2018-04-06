@@ -3,47 +3,86 @@
 <html>
 <head>
 	<title>Chamber Control</title>
+	<script>
+		freezerStr = "";
+		
+		function getESPIO() {
+			nocache = "&nocache=" + Math.random() * 1000000;
+			// nocache = "&nocache"
+			var request = new XMLHttpRequest();
+
+			request.onreadystatechange = function() {
+				if (this.readyState == 4) {
+					if (this.status == 200) {
+						if (this.responseXML != null) {
+							if (this.responseXML.getElementsByTagName('freezer')[0].childNodes[0].nodeValue === "checked") {
+								document.devForm.freezer.checked = true;
+							}
+							else {
+								document.devForm.freezer.checked = false;
+							}
+						}
+					}
+				}					
+			}
+
+			request.open("GET", "updateData" + freezerStr + nocache, true);
+			request.send(null);
+			setTimeout('getESPIO()', 5000);
+
+			freezerStr = ""
+
+		}
+
+		function GetCheck() {
+			if (devForm.freezer.checked) {
+				freezerStr = "&freezer=1";			
+			}
+			else {
+				freezerStr = "&freezer=0";
+			}
+		}
+
+	</script>
+
+	<style>	
+		header, footer {
+			padding: 1em;
+			color: white;
+			background-color: green;
+			clear: left;
+			text-align: center;
+		}
+		nav {		
+			float: left;
+			border-right: thik soli #ff0000;
+			max-width: 160px;
+			margin: 20px;
+			padding: 1em;
+		}
+		.controlTmpHum, .readTempHum {
+			float: center
+			padding: 1em;
+			overflow: hidden;		
+		}		
+	</style>
 </head>
 
-<style>	
-	header, footer {
-		padding: 1em;
-		color: white;
-		background-color: green;
-		clear: left;
-		text-align: center;
-	}
-	nav {		
-		float: left;
-		border-right: thik soli #ff0000;
-		max-width: 160px;
-		margin: 20px;
-		padding: 1em;
-	}
-	.controlTmpHum, .readTempHum {
-		float: center
-/*	    margin-left: 170px;
-	    border-left: 2px solid gray;*/
-	    padding: 1em;
-	    overflow: hidden;		
-	}		
-</style>
-
-<body>
+<body onload="getESPIO()">
 	<header><h1> Meat Curing Chamber Dashboard </h1></header>
 
 
 	<div class="enableDisableDevice">
 		<nav>
-			<form id="checkDev">Device Control<br>
-				<input type="checkbox" name="freezer" value="0">Freezer<br>
-				<input type="checkbox" name="humidifier" value="0">Humidifier<br>
-				<input type="checkbox" name="deHumidifier" value="0">Dehumidifier<br>
-				<input type="checkbox" name="heater" value="0">Heater<br>
-				<input type="checkbox" name="internalFan" value="0">Internal Fan<br>
-				<input type="checkbox" name="freshAirFan" value="0">Fresh air fan<br>
-				<input type="checkbox" name="dev7" value="0">Device 7<br>
-				<input type="checkbox" name="dev8" value="0">Device 8<br>
+			<form id="checkDev" name="devForm">Device Control<br>
+				<input type="checkbox" name="freezer" value="1" onclick="GetCheck()">Freezer<br>
+				<input type="checkbox" name="humidifier" value="0" onclick="GetCheck()">Humidifier<br>
+				<input type="checkbox" name="deHumidifier" value="0" onclick="GetCheck()">Dehumidifier<br>
+				<input type="checkbox" name="heater" value="0" onclick="GetCheck()">Heater<br>
+				<input type="checkbox" name="internalFan" value="0" onclick="GetCheck()">Internal Fan<br>
+				<input type="checkbox" name="freshAirFan" value="0" onclick="GetCheck()">Fresh air fan<br>
+				<input type="checkbox" name="dev7" value="0" onclick="GetCheck()">Device 7<br>
+				<input type="checkbox" name="dev8" value="0" onclick="GetCheck()">Device 8<br>
 			</form>
 		</nav>
 	</div>

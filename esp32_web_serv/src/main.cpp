@@ -9,7 +9,7 @@
 #include "SD.h"
 
 
-#define     REQ_BUF_SZ      100
+#define     REQ_BUF_SZ      1024
 
 const char* ssid = "internets";
 const char* password = "CLFA4ABD38";
@@ -24,7 +24,7 @@ WiFiServer server(80);
 File webFile; 
 
 // Variable to store the HTTP request
-char httpReq[REQ_BUF_SZ] = {0}; // buffered HTTP request stored as null terminated string
+String httpReq;       // buffered HTTP request stored as null terminated string
 char reqIndex = 0;              // index into HTTP_req buffer
 
 // searches for the string sfind in the string str
@@ -53,15 +53,14 @@ char StrContains(char *str, char *sfind)
         }
         index++;
     }
-
     return 0;
 }
 
 void setNewControls() {
-  if (StrContains(httpReq, "freezer=1")) {
+  if (httpReq.indexOf("freezer=1") >= 0) {
     freezerStatus = true;
     digitalWrite(freezer, HIGH);
-  } else if(StrContains(httpReq, "freezer=0")) {
+  } else if(httpReq.indexOf("freezer=0") >= 0) {
     freezerStatus = false;
     digitalWrite(freezer, LOW);
   }
@@ -134,15 +133,12 @@ void loop() {
 
   if (client) {  // if new client connects
     boolean currentLineIsBlank = true;
-    while (client.connected()) {
+    reqIndex = 0;
+    while (client.connected()) {      
       if (client.available()) {   // client data available to read
         char c = client.read(); // read 1 byte (character) from client
-
-        if (reqIndex < (REQ_BUF_SZ - 1)) {
-        httpReq[reqIndex] = c;          // save HTTP request character
-        reqIndex++;
-        }
-
+        httpReq += c;
+        //Serial.write(c);    
         // if the current line is blank, you got two newline characters in a row.
         // that's the end of the client HTTP request, so send a response:
         if (c == '\n' && currentLineIsBlank) {
@@ -150,13 +146,12 @@ void loop() {
           // send a standard http response header
           client.println("HTTP/1.1 200 OK");
 
-          Serial.println("Just entered current line is blank!!");
           Serial.println(httpReq);
 
           // Send XML file or Web page
           // If client already on the web page, browser requests with AJAX the latest
           // sensor readings (ESP32 sends the XML file)
-          if (StrContains(httpReq, "updateData")) {
+          if (httpReq.indexOf("updateData") >= 0) {
             Serial.println("I am here !!");
             // send rest of HTTP header
             client.println("Content-Type: text/xml");
@@ -198,11 +193,12 @@ void loop() {
           // a text character was received from client
           currentLineIsBlank = false;
         }
-        } // end if (client.available())
+      } // end if (client.available())
       // Serial.println(header);
     } // end while (client.connected())
     // Clear the header variable
     // Close the connection
+    httpReq = "";
     client.stop();
     Serial.println("Client disconnected.");    
   } // end if (client)
