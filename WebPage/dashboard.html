@@ -4,7 +4,15 @@
 <head>
 	<title>Chamber Control</title>
 	<script>
+
 		freezerStr = "";
+		humidifierStr = "";
+		deHumidifierStr = "";
+		heaterStr = "";
+		internalFanStr = "";
+		freshAirFanStr = "";
+		dev7Str = "";
+		dev8Str = "";
 		
 		function getESPIO() {
 			nocache = "&nocache=" + Math.random() * 1000000;
@@ -15,32 +23,133 @@
 				if (this.readyState == 4) {
 					if (this.status == 200) {
 						if (this.responseXML != null) {
+							
+							document.getElementsByClassName("readTemperatureC")[0].innerHTML = 
+							this.responseXML.getElementsByTagName('tempC')[0].childNodes[0].nodeValue;
+
+							document.getElementsByClassName("readTemperatureF")[0].innerHTML = 
+							this.responseXML.getElementsByTagName('tempF')[0].childNodes[0].nodeValue;														
+
+							document.getElementsByClassName("readHumidity")[0].innerHTML = 
+							this.responseXML.getElementsByTagName('hum')[0].childNodes[0].nodeValue;							
+							
+							// Freezr Control
 							if (this.responseXML.getElementsByTagName('freezer')[0].childNodes[0].nodeValue === "checked") {
 								document.devForm.freezer.checked = true;
-							}
-							else {
+							} else {
 								document.devForm.freezer.checked = false;
+							}	
+
+							if (this.responseXML.getElementsByTagName('humidifier')[0].childNodes[0].nodeValue === "checked") {
+								document.devForm.humidifier.checked = true;
+							} else {
+								document.devForm.humidifier.checked = false;
+							}	
+							
+							if (this.responseXML.getElementsByTagName('deHumidifier')[0].childNodes[0].nodeValue === "checked") {
+								document.devForm.deHumidifier.checked = true;
+							} else {
+								document.devForm.deHumidifier.checked = false;
+							}	
+
+							if (this.responseXML.getElementsByTagName('heater')[0].childNodes[0].nodeValue === "checked") {
+								document.devForm.heater.checked = true;
+							} else {
+								document.devForm.heater.checked = false;
+							}	
+
+							if (this.responseXML.getElementsByTagName('internalFan')[0].childNodes[0].nodeValue === "checked") {
+								document.devForm.internalFan.checked = true;
+							} else {
+								document.devForm.internalFan.checked = false;
+							}	
+
+							if (this.responseXML.getElementsByTagName('freshAirFan')[0].childNodes[0].nodeValue === "checked") {
+								document.devForm.freshAirFan.checked = true;
+							} else {
+								document.devForm.freshAirFan.checked = false;
+							}	
+
+							if (this.responseXML.getElementsByTagName('dev7')[0].childNodes[0].nodeValue === "checked") {
+								document.devForm.dev7.checked = true;
+							} else {
+								document.devForm.dev7.checked = false;
 							}
+
+							if (this.responseXML.getElementsByTagName('dev8')[0].childNodes[0].nodeValue === "checked") {
+								document.devForm.dev8.checked = true;
+							} else {
+								document.devForm.dev8.checked = false;
+							}																																																						
 						}
 					}
 				}					
 			}
 
-			request.open("GET", "updateData" + freezerStr + nocache, true);
+			request.open("GET", "updateData" + freezerStr + humidifierStr + deHumidifierStr + heaterStr + internalFanStr + freshAirFanStr + dev7Str + dev8Str + nocache, true);
 			request.send(null);
-			setTimeout('getESPIO()', 5000);
+			setTimeout('getESPIO()', 1000);
 
-			freezerStr = ""
+			// freezerStr = ""
+			// humidifierStr = "";
+			// deHumidifierStr = "";
+			// heaterStr = "";
+			// internalFanStr = "";
+			// freshAirFanStr = "";
+			dev7Str = "";
+			dev8Str = "";
 
 		}
 
 		function GetCheck() {
+
 			if (devForm.freezer.checked) {
 				freezerStr = "&freezer=1";			
-			}
-			else {
+			} else {
 				freezerStr = "&freezer=0";
 			}
+
+			if (devForm.humidifier.checked) {
+				humidifierStr = "&humidifier=1";			
+			} else {
+				humidifierStr = "&humidifier=0";
+			}	
+
+			if (devForm.deHumidifier.checked) {
+				deHumidifierStr = "&deHumidifier=1";			
+			} else {
+				deHumidifierStr = "&deHumidifier=0";
+			}		
+
+			if (devForm.heater.checked) {
+				heaterStr = "&heater=1";			
+			} else {
+				heaterStr = "&heater=0";
+			}
+
+			if (devForm.internalFan.checked) {
+				internalFanStr = "&internalFan=1";			
+			} else {
+				internalFanStr = "&internalFan=0";
+			}	
+
+			if (devForm.freshAirFan.checked) {
+				freshAirFanStr = "&freshAirFan=1";			
+			} else {
+				freshAirFanStr = "&freshAirFan=0";
+			}		
+
+			if (devForm.dev7.checked) {
+				dev7Str = "&dev7=1";			
+			} else {
+				dev7Str = "&dev7=0";
+			}					
+
+			if (devForm.dev8.checked) {
+				dev8Str = "&dev8=1";			
+			} else {
+				dev8Str = "&dev8=0";
+			}							
 		}
 
 	</script>
@@ -79,7 +188,7 @@
 				<input type="checkbox" name="humidifier" value="0" onclick="GetCheck()">Humidifier<br>
 				<input type="checkbox" name="deHumidifier" value="0" onclick="GetCheck()">Dehumidifier<br>
 				<input type="checkbox" name="heater" value="0" onclick="GetCheck()">Heater<br>
-				<input type="checkbox" name="internalFan" value="0" onclick="GetCheck()">Internal Fan<br>
+				<input type="checkbox" name="internalFan" value="0" onclick="GetCheck()">Internal fan<br>
 				<input type="checkbox" name="freshAirFan" value="0" onclick="GetCheck()">Fresh air fan<br>
 				<input type="checkbox" name="dev7" value="0" onclick="GetCheck()">Device 7<br>
 				<input type="checkbox" name="dev8" value="0" onclick="GetCheck()">Device 8<br>
@@ -90,29 +199,23 @@
 	<div class="controlTmpHum">
 		<br>
 		<form">
-			Set Humidity: <input type="text" name="setHumidity">
+			Set Humidity (%RH): <input type="text" name="setHumidity">
 			<br>
 			<br>
-			Set Temperature: <input type="text" name="setTemperature"">
+			Set Temperature (&degF): <input type="text" name="setTemperature"">
 			<br>
 			<br>
 			<input type="submit" value="Save">
 		</form>
 	</div>
 
-	<div class="readTempHum">
-		<br>
-			Current Humidity: 
-			<script type="text/javascript">
-			document.write('80')
-			</script> % </p> 
+	<div class="readHum">
+		<br> 
+			<p>Current Humidity:<span class="readHumidity">...</span>%RH</p> 
 	</div>
 
-	<div>
-		<p>Current Temperature: 
-		<script type="text/javascript">
-			document.write('23')
-			</script> &degF</p> 
+	<div class="readTmp">
+		<p>Current Temperature:<span class="readTemperatureC">...</span>&degC  <span class="readTemperatureF">...</span>&degF</p> 
 	</div>
 
 	<footer>
