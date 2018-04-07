@@ -8,11 +8,20 @@
 #include <WiFiClient.h>
 #include "SD.h"
 
+#include "DHT.h"
 
-#define     REQ_BUF_SZ      1024
+#define     DHTPIN          4     // what digital pin we're connected to
+#define     BUF_SZ          512
+#define     DHTTYPE         DHT11   // DHT 11
+
+
+char printBuffer[BUF_SZ];
 
 const char* ssid = "internets";
 const char* password = "CLFA4ABD38";
+
+// const char* ssid = "yangobahal";
+// const char* password = "43A74C699A";
 
 const int freezer = 2;
 bool freezerStatus = false;
@@ -27,34 +36,8 @@ File webFile;
 String httpReq;       // buffered HTTP request stored as null terminated string
 char reqIndex = 0;              // index into HTTP_req buffer
 
-// searches for the string sfind in the string str
-// returns 1 if string found
-// returns 0 if string not found
-char StrContains(char *str, char *sfind)
-{
-    char found = 0;
-    char index = 0;
-    char len;
-
-    len = strlen(str);
-    
-    if (strlen(sfind) > len) {
-        return 0;
-    }
-    while (index < len) {
-        if (str[index] == sfind[found]) {
-            found++;
-            if (strlen(sfind) == found) {
-                return 1;
-            }
-        }
-        else {
-            found = 0;
-        }
-        index++;
-    }
-    return 0;
-}
+// Initialize DHT sensor.
+DHT dht(DHTPIN, DHTTYPE);
 
 void setNewControls() {
   if (httpReq.indexOf("freezer=1") >= 0) {
@@ -91,6 +74,9 @@ void sendXMLFile(WiFiClient cl) {
 void setup() {
 
   Serial.begin(115200);
+
+  // Initialize the sensor
+  dht.begin();
 
   // Setup SD card
   if(!SD.begin()){
@@ -130,6 +116,23 @@ void setup() {
 
 void loop() {
    WiFiClient client = server.available();   // Listen for incoming clients
+  
+  // Reading temperature or humidity takes about 250 milliseconds!
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
+  // Read temperature as Celsius (the default)
+  float t = dht.readTemperature();
+  // Read temperature as Fahrenheit (isFahrenheit = true)
+  float f = dht.readTemperature(true);
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t) || isnan(f)) {
+    Serial.println("Failed to read from DHT sensor!");
+  } else {
+    sprintf(printBuffer, "Humidity -> %f\tTemperature ->%f*C\t%f*f\r\n", h, t, f);
+    Serial.print(printBuffer);
+  }
+
 
   if (client) {  // if new client connects
     boolean currentLineIsBlank = true;
@@ -197,8 +200,8 @@ void loop() {
       // Serial.println(header);
     } // end while (client.connected())
     // Clear the header variable
-    // Close the connection
     httpReq = "";
+    // Close the connection
     client.stop();
     Serial.println("Client disconnected.");    
   } // end if (client)
