@@ -52,9 +52,13 @@
 #define     SDA             21
 #define     SDC             22
 
+#define     REF_RATE        2000    // LCD refresh each 2 sec
+
 
 char printBuffer[BUF_SZ];
 char lcdBuffr[50];
+
+uint64_t millisTick = 0;
 
 // const char* ssid = "internets";
 // const char* password = "CLFA4ABD38";
@@ -274,18 +278,37 @@ void oledInit(void) {
   display.invertDisplay();
   display.flipScreenVertically();
   display.setContrast(90, 100, 64);
+}
 
-  //display.setTextAlignment(TEXT_ALIGN_CENTER);
+void refrestDisp(IPAddress servIP, float tempF, float hum) {
 
+  display.clear();
+  
   display.setFont(ArialMT_Plain_10);
   display.drawString(0, 0, "!!! Meat Curing Chamber !!!");
   display.display();
 
-  // display.drawLine(0, 12, 128, 12);
-  // display.display();
-
   display.drawHorizontalLine(0, 15, 128);
   display.display();
+
+  // Display the IP on the LCD
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(2, 19, servIP.toString());
+  display.display();
+
+  display.drawHorizontalLine(0, 38, 128);
+  display.display();
+
+  // Display temperature humidyty data
+
+  String tmpHum = String("T: ");
+  tmpHum += String(tempF, 2);
+  tmpHum += String(" | H: ");
+  tmpHum += String(hum, 2);
+
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(4, 40, tmpHum);
+  display.display();  
 }
 
 void setup() {
@@ -320,22 +343,14 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  
+
+  server.begin();
+
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-
-  server.begin();
-
-  // Display the IP on the LCD
-  display.setFont(ArialMT_Plain_16);
-  display.drawString(2, 19, WiFi.localIP().toString());
-  display.display();
-
-  display.drawHorizontalLine(0, 38, 128);
-  display.display();
 
   // Initialize GPIOS
   pinMode(freezer, OUTPUT);
@@ -380,14 +395,7 @@ void loop() {
   if (isnan(h) || isnan(t) || isnan(f)) {
     Serial.println("Failed to read from DHT sensor!");
   } else {
-    String tmpHum = String("T: ");
-    tmpHum += String(f, 2);
-    tmpHum += String(" | H: ");
-    tmpHum += String(h, 2);
-
-    display.setFont(ArialMT_Plain_16);
-    display.drawString(4, 40, tmpHum);
-    display.display();  
+    // refrestDisp(WiFi.localIP(), f, h);
   }
 
   if (client) {  // if new client connects
@@ -459,6 +467,9 @@ void loop() {
     // Close the connection
     client.stop();
     Serial.println("Client disconnected.");    
-  } // end if (client)
-  display.clear();
+  } // end if (client)  
+
+  if(!(millis() % REF_RATE)) {
+    refrestDisp(WiFi.localIP(), f, h);
+  }
 }   
