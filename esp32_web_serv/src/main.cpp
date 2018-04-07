@@ -39,9 +39,7 @@
 
 #include <SPI.h>
 #include <Wire.h>
-
-#include "Adafruit_GFX.h"
-#include "Adafruit_SSD1306.h"
+#include "SSD1306Wire.h"
 
 #include "SD.h"
 #include "DHT.h"
@@ -50,9 +48,13 @@
 #define     BUF_SZ          512
 #define     DHTTYPE         DHT11   // DHT 11
 #define     OLED_RESET      4
+#define     ADDRESS         0x3C
+#define     SDA             21
+#define     SDC             22
 
 
 char printBuffer[BUF_SZ];
+char lcdBuffr[50];
 
 // const char* ssid = "internets";
 // const char* password = "CLFA4ABD38";
@@ -94,7 +96,7 @@ char reqIndex = 0;              // index into HTTP_req buffer
 DHT dht(DHTPIN, DHTTYPE);
 
 // Oled Object
-Adafruit_SSD1306 display(OLED_RESET);
+SSD1306Wire display(ADDRESS, SDA, SDC);
 
 void setNewControls() {
 
@@ -264,28 +266,26 @@ void sendXMLFile(WiFiClient cl, float tempC, float tempF, float hum) {
 
 }
 
-void testscrolltext(void) {
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(10,0);
-  display.clearDisplay();
-  display.println("Meat Curing Chamber");
+void oledInit(void) {
+
+  display.init();
+  display.displayOn();
+  display.clear();
+  display.invertDisplay();
+  display.flipScreenVertically();
+  display.setContrast(90, 100, 64);
+
+  //display.setTextAlignment(TEXT_ALIGN_CENTER);
+
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(0, 0, "!!! Meat Curing Chamber !!!");
   display.display();
-  delay(1);
- 
-  display.startscrollright(0x00, 0x0F);
-  delay(2000);
-  display.stopscroll();
-  delay(1000);
-  display.startscrollleft(0x00, 0x0F);
-  delay(2000);
-  display.stopscroll();
-  delay(1000);    
-  display.startscrolldiagright(0x00, 0x07);
-  delay(2000);
-  display.startscrolldiagleft(0x00, 0x07);
-  delay(2000);
-  display.stopscroll();
+
+  // display.drawLine(0, 12, 128, 12);
+  // display.display();
+
+  display.drawHorizontalLine(0, 15, 128);
+  display.display();
 }
 
 void setup() {
@@ -295,10 +295,7 @@ void setup() {
   // Initialize the sensor
   dht.begin();
 
-  // initialize with the I2C addr 0x3C (for the 128x32)
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C); 
-
-  //testscrolltext();
+  oledInit();
 
   // Setup SD card
   if(!SD.begin()){
@@ -332,6 +329,14 @@ void setup() {
 
   server.begin();
 
+  // Display the IP on the LCD
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(2, 19, WiFi.localIP().toString());
+  display.display();
+
+  display.drawHorizontalLine(0, 38, 128);
+  display.display();
+
   // Initialize GPIOS
   pinMode(freezer, OUTPUT);
   digitalWrite(freezer, LOW);
@@ -360,6 +365,7 @@ void setup() {
 }
 
 void loop() {
+
    WiFiClient client = server.available();   // Listen for incoming clients
   
   // Reading temperature or humidity takes about 250 milliseconds!
@@ -374,10 +380,15 @@ void loop() {
   if (isnan(h) || isnan(t) || isnan(f)) {
     Serial.println("Failed to read from DHT sensor!");
   } else {
-    // sprintf(printBuffer, "Humidity -> %f\tTemperature ->%f*C\t%f*f\r\n", h, t, f);
-    // Serial.print(printBuffer);
-  }
+    String tmpHum = String("T: ");
+    tmpHum += String(f, 2);
+    tmpHum += String(" | H: ");
+    tmpHum += String(h, 2);
 
+    display.setFont(ArialMT_Plain_16);
+    display.drawString(4, 40, tmpHum);
+    display.display();  
+  }
 
   if (client) {  // if new client connects
     boolean currentLineIsBlank = true;
@@ -449,4 +460,5 @@ void loop() {
     client.stop();
     Serial.println("Client disconnected.");    
   } // end if (client)
+  display.clear();
 }   
