@@ -86,6 +86,11 @@ bool freshAirFanStatus = false;
 bool device7Status = false;
 bool device8Status = false;
 
+// Temperature and humidity variables
+float h = 0.0;
+float t = 0.0;
+float f = 0.0;
+
 // Set web server port number to 80
 WiFiServer server(80);
 
@@ -280,12 +285,22 @@ void oledInit(void) {
   display.setContrast(90, 100, 64);
 }
 
+void oledPrintScreen(const char * str) {
+  display.clear();
+
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(2, 30, str);
+
+  display.display();
+
+}
+
 void refrestDisp(IPAddress servIP, float tempF, float hum) {
 
   display.clear();
   
   display.setFont(ArialMT_Plain_10);
-  display.drawString(0, 0, "!!! Meat Curing Chamber !!!");
+  display.drawString(0, 0, "  !!! Meat Locker V 2.0 !!!");
   display.display();
 
   display.drawHorizontalLine(0, 15, 128);
@@ -301,9 +316,9 @@ void refrestDisp(IPAddress servIP, float tempF, float hum) {
 
   // Display temperature humidyty data
 
-  String tmpHum = String("T: ");
+  String tmpHum = String("T:");
   tmpHum += String(tempF, 2);
-  tmpHum += String(" | H: ");
+  tmpHum += String(" | H:");
   tmpHum += String(hum, 2);
 
   display.setFont(ArialMT_Plain_16);
@@ -319,24 +334,55 @@ void setup() {
   dht.begin();
 
   oledInit();
+  
+  // ----------------------------------------------------
+  // Display welcome message
+  // ----------------------------------------------------
+  display.clear();
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(5, 10, "*** WELCOME ***");
+  display.display();
+  delay(1000);
+
+  display.drawString(0, 40, "Meat Locker V 2.0");
+  
+  display.display();
+  delay(5000);
+  // ----------------------------------------------------
 
   // Setup SD card
   if(!SD.begin()){
     Serial.println("Card Mount Failed");
+    oledPrintScreen("Card Mount Failed");
     return;
   } else {
     Serial.println("SD card successfully mounted !!!");
+    oledPrintScreen("SD mounted !!!");    
+    delay(1000);
   }
 
   uint8_t cardType = SD.cardType();
 
   if(cardType == CARD_NONE){
-      Serial.println("No SD card attached");
+      Serial.println("No SD card attached!");
+      oledPrintScreen("No SD card attached!");   
       return;
   }
 
   WiFi.begin(ssid, password);
   Serial.println("");
+
+  // ----------------------------------------------------
+  // Wait for connection
+  // ----------------------------------------------------
+  display.clear();
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(0, 10, "Connecting to:");
+  display.display();
+  display.drawString(0, 40, ssid);
+  display.display();
+  delay(1000);
+  // ----------------------------------------------------
   
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
@@ -349,8 +395,19 @@ void setup() {
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
-  Serial.print("IP address: ");
+  Serial.print("IP address: ");  
   Serial.println(WiFi.localIP());
+
+  // ----------------------------------------------------
+  // Display SSID connection information
+  display.clear();
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(0, 10, "Connected to :");
+  display.drawString(0, 40, ssid);
+  display.display();
+  delay(5000);
+  // ----------------------------------------------------
+  
 
   // Initialize GPIOS
   pinMode(freezer, OUTPUT);
@@ -382,20 +439,23 @@ void setup() {
 void loop() {
 
    WiFiClient client = server.available();   // Listen for incoming clients
-  
-  // Reading temperature or humidity takes about 250 milliseconds!
-  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  float h = dht.readHumidity();
-  // Read temperature as Celsius (the default)
-  float t = dht.readTemperature();
-  // Read temperature as Fahrenheit (isFahrenheit = true)
-  float f = dht.readTemperature(true);
 
-  // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t) || isnan(f)) {
-    Serial.println("Failed to read from DHT sensor!");
-  } else {
-    // refrestDisp(WiFi.localIP(), f, h);
+    if(!(millis() % REF_RATE)) {
+
+    // Reading temperature or humidity takes about 250 milliseconds!
+    // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+    h = dht.readHumidity();
+    // Read temperature as Celsius (the default)
+    t = dht.readTemperature();
+    // Read temperature as Fahrenheit (isFahrenheit = true)
+    f = dht.readTemperature(true);
+
+    // Check if any reads failed and exit early (to try again).
+    if (isnan(h) || isnan(t) || isnan(f)) {
+      Serial.println("Failed to read from DHT sensor!");
+    } else {
+      refrestDisp(WiFi.localIP(), f, h);
+    }    
   }
 
   if (client) {  // if new client connects
@@ -468,8 +528,4 @@ void loop() {
     client.stop();
     Serial.println("Client disconnected.");    
   } // end if (client)  
-
-  if(!(millis() % REF_RATE)) {
-    refrestDisp(WiFi.localIP(), f, h);
-  }
 }   
