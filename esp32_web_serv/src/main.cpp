@@ -60,11 +60,11 @@ char lcdBuffr[50];
 
 uint64_t millisTick = 0;
 
-// const char* ssid = "internets";
-// const char* password = "CLFA4ABD38";
+const char* ssid = "internets";
+const char* password = "CLFA4ABD38";
 
-const char* ssid = "yangobahal";
-const char* password = "43A74C699A";
+// const char* ssid = "yangobahal";
+// const char* password = "43A74C699A";
 
 // GPIO Pin defination
 const char freezer = 14;

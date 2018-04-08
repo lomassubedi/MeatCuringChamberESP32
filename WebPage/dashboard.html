@@ -13,6 +13,9 @@
 		freshAirFanStr = "";
 		dev7Str = "";
 		dev8Str = "";
+
+		setTmpStr = "";
+		setHumStr = "";
 		
 		function getESPIO() {
 			nocache = "&nocache=" + Math.random() * 1000000;
@@ -86,9 +89,9 @@
 				}					
 			}
 
-			request.open("GET", "updateData" + freezerStr + humidifierStr + deHumidifierStr + heaterStr + internalFanStr + freshAirFanStr + dev7Str + dev8Str + nocache, true);
+			request.open("GET", "updateData" + freezerStr + humidifierStr + deHumidifierStr + heaterStr + internalFanStr + freshAirFanStr + dev7Str + dev8Str + setHumStr + setTmpStr + nocache, true);
 			request.send(null);
-			setTimeout('getESPIO()', 1000);
+			setTimeout('getESPIO()', 10000);
 
 			freezerStr = ""
 			humidifierStr = "";
@@ -98,6 +101,9 @@
 			freshAirFanStr = "";
 			dev7Str = "";
 			dev8Str = "";
+
+			setTmpStr = "";
+			setHumStr = "";
 
 		}
 
@@ -152,6 +158,23 @@
 			}							
 		}
 
+		function setHumTmp(){
+
+			var setTemperature = document.getElementsByName("setTemperature")[0].value;
+			var setHumidity = document.getElementsByName("setHumidity")[0].value;
+
+			document.getElementsByClassName("setPointHumidity")[0].innerHTML = document.getElementsByName("setHumidity")[0].value;
+			document.getElementsByClassName("setPointTemperature")[0].innerHTML = document.getElementsByName("setTemperature")[0].value;
+
+			if(!((setTemperature == "") || (setHumidity == ""))) {
+				setTmpStr = "&setTmp=" + setTemperature;					
+
+				setHumStr = "&setHum=" + setHumidity;			
+			} else {
+				alert("Invalid input parameter !!! \nPlease input valid temperature and humidity value !!!");
+			}
+		}
+
 	</script>
 
 	<style>	
@@ -197,25 +220,34 @@
 	</div>
 
 	<div class="controlTmpHum">
-		<br>
-		<form">
-			Set Humidity (%RH): <input type="text" name="setHumidity">
-			<br>
-			<br>
-			Set Temperature (&degF): <input type="text" name="setTemperature"">
-			<br>
-			<br>
-			<input type="submit" value="Save">
+		<form>
+			<p>
+				Set Humidity (%RH): <input type="number" steps="any" value="0.0" min="0.0" max="100.0" name="setHumidity"> 
+				<input type="submit" value = "SET" onclick="setHumTmp()">
+			</p>
 		</form>
+
+		<form>
+			<p>					
+				Set Temperature (&degF): <input type="number" steps="any" value="0.0" min="0.0" max="1000.0" name="setTemperature">
+				<input type="submit" value = "SET" onclick="return setHumTmp();">
+			</p>						
+		</form>
+
+
+	</div>
+
+	<div class="dispSetHumTmp">
+		<p>Humidity Set Point:<span class="setPointHumidity"> ...</span>%RH</p> 
+		<p>Temperature Set Point:<span class="setPointTemperature"> ...</span>&degF</p> 
 	</div>
 
 	<div class="readHum">
-		<br> 
-			<p>Current Humidity:<span class="readHumidity">...</span>%RH</p> 
+		<p>Current Humidity:<span class="readHumidity"> ...</span>%RH</p> 
 	</div>
 
 	<div class="readTmp">
-		<p>Current Temperature:<span class="readTemperatureC">...</span>&degC  <span class="readTemperatureF">...</span>&degF</p> 
+		<p>Current Temperature:<span class="readTemperatureC"> ...</span>&degC  <span class="readTemperatureF"> ...</span>&degF</p> 
 	</div>
 
 	<footer>
