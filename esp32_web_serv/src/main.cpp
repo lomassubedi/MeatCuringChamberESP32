@@ -60,11 +60,13 @@ char lcdBuffr[50];
 
 uint64_t millisTick = 0;
 
+/*
 const char* ssid = "internets";
 const char* password = "CLFA4ABD38";
+*/
 
-// const char* ssid = "yangobahal";
-// const char* password = "43A74C699A";
+const char* ssid = "yangobahal";
+const char* password = "43A74C699A";
 
 // GPIO Pin defination
 const char freezer = 14;
@@ -172,6 +174,14 @@ void setNewControls() {
     device8Status = false;
     digitalWrite(device8, LOW);
   }   
+
+  //   if (httpReq.indexOf("setHumidity") >= 0) {
+  //   device8Status = true;
+  //   digitalWrite(device8, HIGH);
+  // } else if(httpReq.indexOf("dev8=0") >= 0) {
+  //   device8Status = false;
+  //   digitalWrite(device8, LOW);
+  // }   
 
 }
 // Send XML file with sensor readings
@@ -408,7 +418,6 @@ void setup() {
   delay(5000);
   // ----------------------------------------------------
   
-
   // Initialize GPIOS
   pinMode(freezer, OUTPUT);
   digitalWrite(freezer, LOW);
@@ -453,6 +462,15 @@ void loop() {
     // Check if any reads failed and exit early (to try again).
     if (isnan(h) || isnan(t) || isnan(f)) {
       Serial.println("Failed to read from DHT sensor!");
+      // Display SSID connection information
+      display.clear();
+      display.setFont(ArialMT_Plain_24);
+      display.drawString(10, 5, "*** No ***");
+      display.display();
+      display.drawString(0, 30, "!! Sensor !!");
+      display.display();
+      delay(1000);
+      // ----------------------------------------------------
     } else {
       refrestDisp(WiFi.localIP(), f, h);
     }    
@@ -465,7 +483,7 @@ void loop() {
       if (client.available()) {   // client data available to read
         char c = client.read(); // read 1 byte (character) from client
         httpReq += c;
-        //Serial.write(c);    
+
         // if the current line is blank, you got two newline characters in a row.
         // that's the end of the client HTTP request, so send a response:
         if (c == '\n' && currentLineIsBlank) {
@@ -483,6 +501,32 @@ void loop() {
             client.println("Content-Type: text/xml");
             client.println("Connection: keep-alive");
             client.println();
+
+            int indxStart = httpReq.indexOf("/updateData&");
+            int indxEnd = httpReq.indexOf(" HTTP");
+
+            String updateString = httpReq.substring(indxStart + 1, indxEnd);
+            
+            if (updateString.indexOf("setHum=") >= 0) {
+
+              int indxHumStart = updateString.indexOf("setHum=");
+              indxHumStart += sizeof("setHum=");
+
+              String humStr = updateString.substring(indxHumStart, indxHumStart + 3);
+              Serial.print("Index value : ");
+              Serial.println(indxHumStart);
+              Serial.print("This is the received string: ");
+              Serial.println(humStr);              
+              int indxHumEnd = humStr.toInt();
+
+              // String _humStr = humStr.substring(indxHumEnd);
+
+              Serial.print("Humidity Value : ");
+              Serial.println(indxHumEnd);
+
+            }
+                                    
+            Serial.println(updateString);            
             
             setNewControls();
             // Send XML file with sensor readings

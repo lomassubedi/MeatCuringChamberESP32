@@ -91,7 +91,7 @@
 
 			request.open("GET", "updateData" + freezerStr + humidifierStr + deHumidifierStr + heaterStr + internalFanStr + freshAirFanStr + dev7Str + dev8Str + setHumStr + setTmpStr + nocache, true);
 			request.send(null);
-			setTimeout('getESPIO()', 10000);
+			setTimeout('getESPIO()', 5000);
 
 			freezerStr = ""
 			humidifierStr = "";
@@ -163,13 +163,13 @@
 			var setTemperature = document.getElementsByName("setTemperature")[0].value;
 			var setHumidity = document.getElementsByName("setHumidity")[0].value;
 
-			document.getElementsByClassName("setPointHumidity")[0].innerHTML = document.getElementsByName("setHumidity")[0].value;
-			document.getElementsByClassName("setPointTemperature")[0].innerHTML = document.getElementsByName("setTemperature")[0].value;
+			// document.getElementsByClassName("setPointHumidity")[0].innerHTML = document.getElementsByName("setHumidity")[0].value;
+			// document.getElementsByClassName("setPointTemperature")[0].innerHTML = document.getElementsByName("setTemperature")[0].value;
 
 			if(!((setTemperature == "") || (setHumidity == ""))) {
-				setTmpStr = "&setTmp=" + setTemperature;					
+				setTmpStr = "&setTmp=" + (setTemperature).padStart(3, "0");					
 
-				setHumStr = "&setHum=" + setHumidity;			
+				setHumStr = "&setHum=" + (setHumidity).padStart(3, "0");	;			
 			} else {
 				alert("Invalid input parameter !!! \nPlease input valid temperature and humidity value !!!");
 			}
@@ -222,15 +222,15 @@
 	<div class="controlTmpHum">
 		<form>
 			<p>
-				Set Humidity (%RH): <input type="number" steps="any" value="0.0" min="0.0" max="100.0" name="setHumidity"> 
-				<input type="submit" value = "SET" onclick="setHumTmp()">
+				Set Humidity (%RH): <input type="number" steps="any" min="0.0" max="100.0" name="setHumidity"> 
+				<input type="button" value = "SET" onclick="setHumTmp()">
 			</p>
 		</form>
 
 		<form>
 			<p>					
-				Set Temperature (&degF): <input type="number" steps="any" value="0.0" min="0.0" max="1000.0" name="setTemperature">
-				<input type="submit" value = "SET" onclick="return setHumTmp();">
+				Set Temperature (&degF): <input type="number" steps="any" min="0.0" max="1000.0" name="setTemperature">
+				<input type="button" value = "SET" onclick="setHumTmp();">
 			</p>						
 		</form>
 
