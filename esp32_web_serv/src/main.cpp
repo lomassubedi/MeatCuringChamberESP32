@@ -92,6 +92,8 @@ bool device8Status = false;
 float h = 0.0;
 float t = 0.0;
 float f = 0.0;
+volatile float setHum = 0.0;
+volatile float setTmp = 0.0;
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -204,6 +206,16 @@ void sendXMLFile(WiFiClient cl, float tempC, float tempF, float hum) {
   cl.print("<hum>");
   cl.print(hum);
   cl.print("</hum>");
+
+  // Upadte set temperature value
+  cl.print("<settmp>");
+  cl.print(setTmp);
+  cl.print("</settmp>");
+
+  // Upadte set humidity value
+  cl.print("<sethum>");
+  cl.print(setHum);
+  cl.print("</sethum>");
 
   sprintf(printBuffer, "Humidity -> %f\tTemperature ->%f*C\t%f*f\r\n", hum, tempC, tempF);
   Serial.print(printBuffer);
@@ -491,7 +503,7 @@ void loop() {
           // send a standard http response header
           client.println("HTTP/1.1 200 OK");
 
-          Serial.println(httpReq);
+          //Serial.println(httpReq);
 
           // Send XML file or Web page
           // If client already on the web page, browser requests with AJAX the latest
@@ -512,19 +524,23 @@ void loop() {
               int indxHumStart = updateString.indexOf("setHum=");
               indxHumStart += sizeof("setHum=");
 
-              String humStr = updateString.substring(indxHumStart, indxHumStart + 3);
-              Serial.print("Index value : ");
-              Serial.println(indxHumStart);
-              Serial.print("This is the received string: ");
-              Serial.println(humStr);              
-              int indxHumEnd = humStr.toInt();
+              String humStr = updateString.substring(indxHumStart, indxHumStart + 5);           
+              setHum = humStr.toFloat();
 
-              // String _humStr = humStr.substring(indxHumEnd);
-
-              Serial.print("Humidity Value : ");
-              Serial.println(indxHumEnd);
-
+              Serial.print("Humidity Set Value : ");
+              Serial.println(setHum);
             }
+
+            if (updateString.indexOf("setTmp=") >= 0) {
+
+              int indxTmpStart = updateString.indexOf("setTmp=");
+              indxTmpStart += sizeof("setTmp=");
+              String tmpStr = updateString.substring(indxTmpStart, indxTmpStart + 5);            
+              setTmp = tmpStr.toFloat();
+
+              Serial.print("Temperature  Set Value : ");
+              Serial.println(setTmp);
+            }            
                                     
             Serial.println(updateString);            
             

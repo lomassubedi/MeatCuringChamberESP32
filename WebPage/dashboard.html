@@ -34,8 +34,14 @@
 							this.responseXML.getElementsByTagName('tempF')[0].childNodes[0].nodeValue;														
 
 							document.getElementsByClassName("readHumidity")[0].innerHTML = 
-							this.responseXML.getElementsByTagName('hum')[0].childNodes[0].nodeValue;							
-							
+							this.responseXML.getElementsByTagName('hum')[0].childNodes[0].nodeValue;
+
+							document.getElementsByClassName("setPointTemperature")[0].innerHTML = 
+							this.responseXML.getElementsByTagName('settmp')[0].childNodes[0].nodeValue;
+														
+							document.getElementsByClassName("setPointHumidity")[0].innerHTML = 
+							this.responseXML.getElementsByTagName('sethum')[0].childNodes[0].nodeValue;
+
 							// Freezr Control
 							if (this.responseXML.getElementsByTagName('freezer')[0].childNodes[0].nodeValue === "checked") {
 								document.devForm.freezer.checked = true;
@@ -91,7 +97,7 @@
 
 			request.open("GET", "updateData" + freezerStr + humidifierStr + deHumidifierStr + heaterStr + internalFanStr + freshAirFanStr + dev7Str + dev8Str + setHumStr + setTmpStr + nocache, true);
 			request.send(null);
-			setTimeout('getESPIO()', 5000);
+			setTimeout('getESPIO()', 1000);
 
 			freezerStr = ""
 			humidifierStr = "";
@@ -167,9 +173,9 @@
 			// document.getElementsByClassName("setPointTemperature")[0].innerHTML = document.getElementsByName("setTemperature")[0].value;
 
 			if(!((setTemperature == "") || (setHumidity == ""))) {
-				setTmpStr = "&setTmp=" + (setTemperature).padStart(3, "0");					
+				setTmpStr = "&setTmp=" + (setTemperature).padStart(5, "0");					
 
-				setHumStr = "&setHum=" + (setHumidity).padStart(3, "0");	;			
+				setHumStr = "&setHum=" + (setHumidity).padStart(5, "0");	;			
 			} else {
 				alert("Invalid input parameter !!! \nPlease input valid temperature and humidity value !!!");
 			}
