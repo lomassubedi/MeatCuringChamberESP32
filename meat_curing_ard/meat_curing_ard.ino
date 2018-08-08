@@ -42,10 +42,14 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 
+#include <NTPClient.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <HTTPClient.h>
+#include "ArduinoJson.h"
 
 #include "Adafruit_BME280.h"
+
 
 #include "SD.h"
 
@@ -69,6 +73,7 @@
 #define BME280_ADD 0x76
 
 #define     REF_RATE        2000    // LCD refresh each 2 sec
+#define     LOG_INTERVAL    3000    // data logging each 3 sec
 
 char printBuffer[BUF_SZ];
 char lcdBuffr[50];
@@ -84,10 +89,15 @@ uint64_t millisTick = 0;
 const char* ssid = "Bee";
 const char* password = "p@ssw0rd";
 
+char timePayloadBuff[500];
+char timeValBuff[100];
 /*
 const char* ssid = "Nanook";
 const char* password = "nanook and punter";
 */
+
+// Name address for Open TimeZone db API
+const char* TimeZoneDBServer = "http://api.timezonedb.com/v2/get-time-zone?key=0979M2P2XE7T&format=json&by=zone&zone=Asia/Kathmandu";
 
 // GPIO Pin defination
 const char freezer = 14;
@@ -120,12 +130,19 @@ WiFiServer server(80);
 // Web page file stored on the SD card
 File webFile; 
 
+// BME280 Object
+Adafruit_BME280 bme(SDA, SCL);
+
+// WiFI UDP and NTP Time client instances
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
+
+// HTTP Client for extracting time 
+ HTTPClient http;
+
 // Variable to store the HTTP request
 String httpReq;       // buffered HTTP request stored as null terminated string
 char reqIndex = 0;              // index into HTTP_req buffer
-
-// BME280 Object
-Adafruit_BME280 bme(SDA, SCL);
 
 // Oled Object
 #ifdef     LCD_EN
@@ -474,6 +491,9 @@ void setup() {
     display.display();
     delay(5000);
   }
+
+  // Start time client
+  timeClient.begin();
   
   // Initialize GPIOS
   pinMode(freezer, OUTPUT);
@@ -545,6 +565,45 @@ void loop() {
     }    
   }
 
+  if((millis() % LOG_INTERVAL) == 0) {
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin(TimeZoneDBServer); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if(httpCode > 0) {
+        // HTTP header has been send and Server response header has been handled
+        Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+        // file found at server
+        if(httpCode == HTTP_CODE_OK) {
+          
+            String payload = http.getString();
+            
+            int bufferSize = payload.length();
+                         
+            DynamicJsonBuffer jsonBuffer(bufferSize);
+
+            JsonObject& root = jsonBuffer.parseObject(payload);
+
+            if (!root.success()) {
+              Serial.println("JSON parsing failed!");
+              return;
+            }     
+            strcpy(timeValBuff, root["formatted"]);                   
+            Serial.print("Date and Time : ");
+            Serial.println(timeValBuff);         
+        }
+    } else {
+        Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+    http.end();
+  }
+  
   if (client) {  // if new client connects
     boolean currentLineIsBlank = true;
     reqIndex = 0;
