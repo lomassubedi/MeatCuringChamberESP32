@@ -77,6 +77,7 @@
 
 char printBuffer[BUF_SZ];
 char lcdBuffr[50];
+char timeValBuff[50];
 
 uint64_t millisTick = 0;
 
@@ -89,15 +90,15 @@ uint64_t millisTick = 0;
 const char* ssid = "Bee";
 const char* password = "p@ssw0rd";
 
-char timePayloadBuff[500];
-char timeValBuff[100];
 /*
 const char* ssid = "Nanook";
 const char* password = "nanook and punter";
 */
 
 // Name address for Open TimeZone db API
-const char* TimeZoneDBServer = "http://api.timezonedb.com/v2/get-time-zone?key=0979M2P2XE7T&format=json&by=zone&zone=Asia/Kathmandu";
+const char* TimeZoneDBServer = "http://api.timezonedb.com"\
+                                "/v2/get-time-zone?key=0979M2P2XE7T&"\
+                                "format=json&by=zone&zone=Asia/Kathmandu";
 
 // GPIO Pin defination
 const char freezer = 14;
@@ -118,6 +119,7 @@ bool internalFanStatus = false;
 bool freshAirFanStatus = false;
 bool device7Status = false;
 bool device8Status = false;
+bool flagSDProblem = false;
 
 // Temperature and humidity variables
 float h = 0.0;
@@ -133,11 +135,7 @@ File webFile;
 // BME280 Object
 Adafruit_BME280 bme(SDA, SCL);
 
-// WiFI UDP and NTP Time client instances
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
-
-// HTTP Client for extracting time 
+// HTTP Client for extracting time from TimeZoneDB API
  HTTPClient http;
 
 // Variable to store the HTTP request
@@ -189,7 +187,7 @@ void setNewControls() {
   } else if(httpReq.indexOf("internalFan=0") >= 0) {
     internalFanStatus = false;
     digitalWrite(internalFan, HIGH);
-  }     
+  }   
 
   if (httpReq.indexOf("freshAirFan=1") >= 0) {
     freshAirFanStatus = true;
@@ -222,7 +220,6 @@ void setNewControls() {
   //   device8Status = false;
   //   digitalWrite(device8, LOW);
   // }   
-
 }
 // Send XML file with sensor readings
 void sendXMLFile(WiFiClient cl, float tempC, float tempF, float hum) {
@@ -327,10 +324,8 @@ void sendXMLFile(WiFiClient cl, float tempC, float tempF, float hum) {
 
 #ifdef LCD_EN
 void oledInit(void) {
-
   
-  display.init();
-  
+  display.init();  
   display.displayOn();
   display.clear();
   display.invertDisplay();
@@ -341,10 +336,8 @@ void oledInit(void) {
 
 void oledPrintScreen(const char * str) {
   display.clear();
-
   display.setFont(ArialMT_Plain_16);
   display.drawString(2, 30, str);
-
   display.display();
 
 }
@@ -369,7 +362,6 @@ void refrestDisp(IPAddress servIP, float tempF, float hum) {
   display.display();
 
   // Display temperature humidyty data
-
   String tmpHum = String("T:");
   tmpHum += String(tempF, 2);
   tmpHum += String(" | H:");
@@ -405,30 +397,45 @@ void setup() {
   delay(5000);
   // ----------------------------------------------------
   #endif
+
+
   // Setup SD card
   if(!SD.begin()){
+
     Serial.println("Card Mount Failed");
     #ifdef LCD_EN
     oledPrintScreen("Card Mount Failed");
-    #endif
-//    return;
+    #endif    
+
+    flagSDProblem = true;
+
   } else {
+
     Serial.println("SD card successfully mounted !!!");
     #ifdef LCD_EN
     oledPrintScreen("SD mounted !!!");   
     #endif 
+
+    flagSDProblem = false;
     delay(1000);
   }
 
   uint8_t cardType = SD.cardType();
 
   if(cardType == CARD_NONE){
-      Serial.println("No SD card attached!");
-      #ifdef LCD_EN
-      oledPrintScreen("No SD card attached!");   
-      #endif
-//      return;
+
+    flagSDProblem = true;
+    
+    Serial.println("No SD card attached!");
+    #ifdef LCD_EN
+    oledPrintScreen("No SD card attached!");   
+    #endif
+
+  } else {
+
+    flagSDProblem = false;
   }
+
 //  WiFi.disconnect(true);
 //  delay(4000);
   // WiFi.
@@ -491,9 +498,6 @@ void setup() {
     display.display();
     delay(5000);
   }
-
-  // Start time client
-  timeClient.begin();
   
   // Initialize GPIOS
   pinMode(freezer, OUTPUT);
@@ -551,16 +555,12 @@ void loop() {
       #endif
       // ----------------------------------------------------
     } else {
-      Serial.print(F("Temperature : "));
-      Serial.print(t);
-      Serial.print("C ");
-      Serial.print(f);
-      Serial.print("F. ");
-      Serial.print(F("Humidity : "));
-      Serial.print(h);
-      Serial.println("%.");
+
+      sprintf(printBuffer, "Humidity -> %f%\tTemperature ->%f*C\t%f*f\r\n", h, t, f);
+      Serial.print(printBuffer);
+
       #ifdef LCD_EN
-      refrestDisp(WiFi.localIP(), f, h);
+        refrestDisp(WiFi.localIP(), f, h);
       #endif
     }    
   }
@@ -604,6 +604,14 @@ void loop() {
     http.end();
   }
   
+  if(flagSDProblem) {
+    if(client) {
+      client.print("Error, No SD card detected. Please check the wiring and restart the system !!!");
+    }
+    client.stop();
+    return;
+  }
+
   if (client) {  // if new client connects
     boolean currentLineIsBlank = true;
     reqIndex = 0;
