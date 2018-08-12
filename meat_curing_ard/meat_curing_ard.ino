@@ -42,7 +42,6 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 
-#include <NTPClient.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <HTTPClient.h>
@@ -50,8 +49,8 @@
 
 #include "Adafruit_BME280.h"
 
-
 #include "SD.h"
+#include "FS.h"
 
 #define     LCD_EN
 
@@ -78,6 +77,9 @@
 char printBuffer[BUF_SZ];
 char lcdBuffr[50];
 char timeValBuff[50];
+char fileNameBuffer[50];
+char fileInputTextBuffer[100];
+char fileInputHeaderBuffer[100];
 
 uint64_t millisTick = 0;
 
@@ -101,6 +103,7 @@ const char* TimeZoneDBServer = "http://api.timezonedb.com"\
                                 "format=json&by=zone&zone=Asia/Kathmandu";
 
 // GPIO Pin defination
+const char SD_CS = 5;
 const char freezer = 14;
 const char humidifier = 27;
 const char deHumidifier = 26;
@@ -374,6 +377,69 @@ void refrestDisp(IPAddress servIP, float tempF, float hum) {
 
 #endif
 
+//bool checkFile(fs::FS &fs, const char * path){
+//  
+//  File file = fs.exists(path);
+//  
+//  if(!file){
+//    Serial.println("Failed to open file for writing");
+//    return;
+//  }
+//  if(file.print(message)){
+//    Serial.println("File written");
+//  } else {
+//    Serial.println("Write failed");
+//  }
+//}
+
+void logToFile(fs::FS &fs, const char * path, const char * message){
+  Serial.printf("Writing file: %s\n", path);
+
+  if(fs.exists(path)) {
+    File file = fs.open(path, FILE_APPEND);
+
+    if(!file){
+      Serial.println("Failed to open file for appending the data ");
+      return;
+    }
+    if(file.println(message)){
+      Serial.println("Message appended");
+    } else {
+      Serial.println("Append failed");
+    }
+    
+  } else {    // If file not exists, create it
+    File file = fs.open(path, FILE_WRITE);
+    
+    if(!file){
+      Serial.println("Failed to open file for writing");
+      return;
+    }
+    
+    if(file.println("Date, Time, Temperature (F), Humidity(%)")){
+      Serial.println("Written the header !!");
+    } else {
+      Serial.println("Write failed");
+    }
+  }
+  
+
+}
+ 
+//void appendFile(fs::FS &fs, const char * path, const char * message){
+//  Serial.printf("Appending to file: %s\n", path); 
+//  File file = fs.open(path, FILE_APPEND);
+//  if(!file){
+//    Serial.println("Failed to open file for appending");
+//    return;
+//  }
+//  if(file.print(message)){
+//    Serial.println("Message appended");
+//  } else {
+//    Serial.println("Append failed");
+//  }
+//}
+
 void setup() {
 
   Serial.begin(115200);
@@ -398,9 +464,10 @@ void setup() {
   // ----------------------------------------------------
   #endif
 
-
+  pinMode(SD_CS, OUTPUT);
+  
   // Setup SD card
-  if(!SD.begin()){
+  if(!SD.begin(SD_CS)){
 
     Serial.println("Card Mount Failed");
     #ifdef LCD_EN
@@ -565,53 +632,149 @@ void loop() {
     }    
   }
 
+  if(flagSDProblem) {
+    if(client) {
+      client.print("Error, No SD card detected. Please check the wiring and restart the system !!!");
+    }
+    client.stop();
+
+    if((millis() % 5000) == 0) {
+      Serial.println("Error, No SD card detected. Please check the wiring and restart the system !!!");
+    }
+    return;
+  }
+
+
   if((millis() % LOG_INTERVAL) == 0) {
-    Serial.print("[HTTP] begin...\n");
     // configure traged server and url
     http.begin(TimeZoneDBServer); //HTTP
 
-    Serial.print("[HTTP] GET...\n");
+    Serial.println("Connecting to timezonedb [time server]...");
     // start connection and send HTTP header
     int httpCode = http.GET();
 
     // httpCode will be negative on error
     if(httpCode > 0) {
         // HTTP header has been send and Server response header has been handled
-        Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+        // Serial.printf("[HTTP] GET... code: %d\n", httpCode);
 
         // file found at server
         if(httpCode == HTTP_CODE_OK) {
           
             String payload = http.getString();
             
-            int bufferSize = payload.length();
-                         
+            int bufferSize = payload.length();                         
             DynamicJsonBuffer jsonBuffer(bufferSize);
-
             JsonObject& root = jsonBuffer.parseObject(payload);
 
             if (!root.success()) {
               Serial.println("JSON parsing failed!");
               return;
-            }     
-            strcpy(timeValBuff, root["formatted"]);                   
+            }
+
+            strcpy(timeValBuff, root["formatted"]);    
+
             Serial.print("Date and Time : ");
             Serial.println(timeValBuff);         
         }
     } else {
-        Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+        Serial.printf("Could not connect to api.timezonedb.com. Please check the connection, error: %s\n", http.errorToString(httpCode).c_str());
     }
     http.end();
-  }
-  
-  if(flagSDProblem) {
-    if(client) {
-      client.print("Error, No SD card detected. Please check the wiring and restart the system !!!");
-    }
-    client.stop();
-    return;
-  }
 
+
+  String dateTimeStr = String(timeValBuff);
+  String dateStr = dateTimeStr.substring(0, 10);
+  Serial.print("Date String : ");
+  Serial.println(dateStr);
+  
+  String timeStr = dateTimeStr.substring(10);
+  Serial.print("Time String : ");
+  Serial.println(timeStr);
+  
+//  String logFileName = dateStr + ".csv";
+  String logFilePath = "/" + dateStr + ".csv";
+  
+  logFilePath.toCharArray(fileNameBuffer, (logFilePath.length() + 1));
+  
+  String dataString = dateStr + "," +  timeStr + "," + String(f) + "," + String(h);  
+
+  dataString.toCharArray(fileInputTextBuffer, (dataString.length() + 1));
+
+  // These will be the headers for your excel file, CHANGE "" 
+  // to whatevr headers you would like to use
+//  sprintf(fileInputHeaderBuffer, "Date, Time, Temperature (F), Humidity(%)");
+
+  logToFile(SD, (const char *)fileNameBuffer, (const char *)fileInputTextBuffer);
+ }
+  /*
+  if(SD.exists(logFileName)) {
+    
+    File file = SD.open(logFileName, FILE_APPEND);
+    
+    if(!file){
+    Serial.println("Failed to open file for appending");
+    }    
+    if(file.println(dataString)){
+      Serial.println("Data appended");
+    } else {
+      Serial.println("Append failed");
+    }
+    file.close();
+    
+  } else {
+    
+    File file = SD.open(logFileName, FILE_WRITE);
+    
+    if(!file){
+      Serial.println("Failed to open file for writing");
+    }
+      
+    if(file.println(fileInputHeaderBuffer)){
+      Serial.println("File creaed and header written");
+    } else {
+      Serial.println("File create failed");
+   }
+   file.close();
+  }
+  }
+  */
+  
+  /*
+  if(SD.exists(logFileName)) {  
+    
+    // now append new data file
+    File logFile = SD.open(logFileName, FILE_WRITE);
+    Serial.print("Logging data to file : ");
+    Serial.println(logFileName);
+    if(logFile){  
+          
+      String dataString = dateStr + timeStr + String(f) + String(h);
+
+      Serial.print("Log Data String : ");
+      Serial.println(dataString);
+      
+      logFile.println(dataString);
+      logFile.close(); // close the file   
+      } else {
+        Serial.print("Could not open log file : ");
+        Serial.println(logFile);
+      } 
+
+  } else {
+      //Write Log File Header
+    File logFile = SD.open(logFileName, FILE_WRITE);
+    
+    Serial.print("Creating file : ");
+    Serial.println(logFileName);
+    
+    String header = "Date, Time, Temperature (F), Humidity(%)"; //These will be the headers for your excel file, CHANGE "" to whatevr headers you would like to use
+    logFile.println(header);
+    logFile.close();
+  }
+  }
+  */
+  
   if (client) {  // if new client connects
     boolean currentLineIsBlank = true;
     reqIndex = 0;
@@ -699,7 +862,6 @@ void loop() {
           currentLineIsBlank = false;
         }
       } // end if (client.available())
-      // Serial.println(header);
     } // end while (client.connected())
     // Clear the header variable
     httpReq = "";
