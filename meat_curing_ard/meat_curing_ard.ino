@@ -131,6 +131,8 @@ bool flagSDProblem = false;
 float h = 0.0;
 float t = 0.0;
 float f = 0.0;
+volatile float setHum = 0.0;
+volatile float setTmp = 0.0;
 
 // Variable to store the HTTP request
 String httpReq;       // buffered HTTP request stored as null terminated string
@@ -219,15 +221,7 @@ void setNewControls() {
   } else if(httpReq.indexOf("dev8=0") >= 0) {
     device8Status = false;
     digitalWrite(device8, HIGH);
-  }   
-
-  //   if (httpReq.indexOf("setHumidity") >= 0) {
-  //   device8Status = true;
-  //   digitalWrite(device8, HIGH);
-  // } else if(httpReq.indexOf("dev8=0") >= 0) {
-  //   device8Status = false;
-  //   digitalWrite(device8, LOW);
-  // }   
+  }
 }
 // Send XML file with sensor readings
 void sendXMLFile(WiFiClient cl, float tempC, float tempF, float hum) {
@@ -249,6 +243,16 @@ void sendXMLFile(WiFiClient cl, float tempC, float tempF, float hum) {
   cl.print("<hum>");
   cl.print(hum);
   cl.print("</hum>");
+
+  // Upadte set temperature value
+  cl.print("<settmp>");
+  cl.print(setTmp);
+  cl.print("</settmp>");
+
+  // Upadte set humidity value
+  cl.print("<sethum>");
+  cl.print(setHum);
+  cl.print("</sethum>");  
 
   sprintf(printBuffer, "Humidity -> %f\tTemperature ->%f*C\t%f*f\r\n", hum, tempC, tempF);
   Serial.print(printBuffer);
@@ -682,6 +686,9 @@ void loop() {
   // to whatevr headers you would like to use
   logToFile(SD, (const char *)fileNameBuffer, (const char *)fileInputTextBuffer);
 
+//  sprintf("Humidity Set Point: %f, Temperature Set Point : %f", setHum, setTmp);
+//  Serial.println(printBuffer);
+
  }
   
   if (client) {  // if new client connects
@@ -697,9 +704,7 @@ void loop() {
         if (c == '\n' && currentLineIsBlank) {
 
           // send a standard http response header
-          client.println("HTTP/1.1 200 OK");
-
-          Serial.println(httpReq);
+          client.println("HTTP/1.1 200 OK");          
 
           // Send XML file or Web page
           // If client already on the web page, browser requests with AJAX the latest
@@ -720,18 +725,23 @@ void loop() {
               int indxHumStart = updateString.indexOf("setHum=");
               indxHumStart += sizeof("setHum=");
 
-              String humStr = updateString.substring(indxHumStart, indxHumStart + 3);
-              Serial.print("Index value : ");
-              Serial.println(indxHumStart);
-              Serial.print("This is the received string: ");
-              Serial.println(humStr);              
-              int indxHumEnd = humStr.toInt();
+              String humStr = updateString.substring(indxHumStart, indxHumStart + 5);           
+              setHum = humStr.toFloat();
 
-              // String _humStr = humStr.substring(indxHumEnd);
-
-              Serial.print("Humidity Value : ");
-              Serial.println(indxHumEnd);
+              Serial.print("Humidity Set Value : ");
+              Serial.println(setHum);
             }
+
+            if (updateString.indexOf("setTmp=") >= 0) {
+
+              int indxTmpStart = updateString.indexOf("setTmp=");
+              indxTmpStart += sizeof("setTmp=");
+              String tmpStr = updateString.substring(indxTmpStart, indxTmpStart + 5);            
+              setTmp = tmpStr.toFloat();
+
+              Serial.print("Temperature  Set Value : ");
+              Serial.println(setTmp);
+            }            
                                     
             Serial.println(updateString);            
             
