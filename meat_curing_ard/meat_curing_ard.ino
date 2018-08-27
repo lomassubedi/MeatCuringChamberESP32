@@ -9,15 +9,10 @@
  * Pin Configuration
  * ------------------------
  * ------------------------
- * OLED Display Connectiion
+ * OLED and BME280 Connection
  * ------------------------
  * SDA    -> 21
  * SCL    -> 22
- * ------------------------
- * BME 280 Connection
- * ------------------------
- * SDA    -> 2
- * SCL    -> 4
  * ------------------------
  * SD Card Connection
  * ------------------------
@@ -107,6 +102,7 @@ const char* TimeZoneDBServer = "http://api.timezonedb.com"\
 
 // GPIO Pin defination
 const char SD_CS = 5;
+
 const char freezer = 14;
 const char humidifier = 27;
 const char deHumidifier = 26;
@@ -255,7 +251,7 @@ void sendXMLFile(WiFiClient cl, float tempC, float tempF, float hum) {
   cl.print("</sethum>");  
 
   sprintf(printBuffer, "Humidity -> %f\tTemperature ->%f*C\t%f*f\r\n", hum, tempC, tempF);
-  Serial.print(printBuffer);
+  Serial.print(printBuffer);  
 
   // Check Box Device status
   // For freezer
@@ -331,6 +327,31 @@ void sendXMLFile(WiFiClient cl, float tempC, float tempF, float hum) {
   cl.println("</dev8>");   
 
   cl.print("</inout>");
+
+  #if 0
+  Serial.println("----------- XML Status -------------");
+  Serial.print("freezerStatus: ");
+  Serial.print(freezerStatus);
+
+  Serial.print(", humidifierStatus: ");
+  Serial.print(humidifierStatus);
+
+  Serial.print(", deHumidifierStatus: ");
+  Serial.print(deHumidifierStatus);
+ 
+  Serial.print(", heaterStatus: ");
+  Serial.print(heaterStatus);
+
+  Serial.print(", internalFanStatus: ");
+  Serial.print(internalFanStatus);
+
+  Serial.print(", freshAirFanStatus: ");
+  Serial.print(freshAirFanStatus);
+
+  Serial.print(", device8Status: ");
+  Serial.println(device8Status);
+
+  #endif
 
 }
 
@@ -468,7 +489,7 @@ void setup() {
 
   uint8_t cardType = SD.cardType();
 
-  if(cardType == CARD_NONE){
+  if(cardType == CARD_NONE) {
 
     flagSDProblem = true;
     
@@ -478,7 +499,6 @@ void setup() {
     #endif
 
   } else {
-
     flagSDProblem = false;
   }
 
@@ -544,28 +564,28 @@ void setup() {
   
   // Initialize GPIOS
   pinMode(freezer, OUTPUT);
-  digitalWrite(freezer, LOW);
+  digitalWrite(freezer, HIGH);
 
   pinMode(humidifier, OUTPUT);
-  digitalWrite(humidifier, LOW);
+  digitalWrite(humidifier, HIGH);
 
   pinMode(deHumidifier, OUTPUT);
-  digitalWrite(deHumidifier, LOW);
+  digitalWrite(deHumidifier, HIGH);
 
   pinMode(heater, OUTPUT);
-  digitalWrite(heater, LOW);
+  digitalWrite(heater, HIGH);
 
   pinMode(internalFan, OUTPUT);
-  digitalWrite(internalFan, LOW);
+  digitalWrite(internalFan, HIGH);
 
   pinMode(freshAirFan, OUTPUT);
-  digitalWrite(freshAirFan, LOW);
+  digitalWrite(freshAirFan, HIGH);
 
   pinMode(device7, OUTPUT);
-  digitalWrite(device7, LOW);
+  digitalWrite(device7, HIGH);
 
   pinMode(device8, OUTPUT);
-  digitalWrite(device8, LOW);
+  digitalWrite(device8, HIGH);
 
 }
 
