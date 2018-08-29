@@ -71,6 +71,10 @@
 #define     INTERVAL_LOG            3000    // data logging each 3 sec
 #define     INTERVAL_SD_ERROR       5000    // SD card error disp interval
 
+
+#define     OFFSET_TMP              1.5F
+#define     OFFSET_HUM              5.0F
+
 char printBuffer[BUF_SZ];
 char timeValBuff[50];
 char fileNameBuffer[50];
@@ -153,72 +157,148 @@ HTTPClient http;
   SSD1306Wire display(ADDRESS, SDA, SDC);
 #endif
 
+// Freezer Control
+void freezerTurnOn(void) {
+   digitalWrite(freezer, LOW);
+}
+
+void freezerTurnOff(void) {
+   digitalWrite(freezer, HIGH);
+}
+
+// Humidifier control
+void humidifierTurnOn(void) {
+   digitalWrite(humidifier, LOW);
+}
+
+void humidifierTurnOff(void) {
+   digitalWrite(humidifier, HIGH);
+}
+
+// De Humidifier control
+void deHumidifierTurnOn(void) {
+   digitalWrite(deHumidifier, LOW);
+}
+
+void deHumidifierTurnOff(void) {
+   digitalWrite(deHumidifier, HIGH);
+}
+
+// Heater control
+void heaterTurnOn(void) {
+   digitalWrite(heater, LOW);
+}
+
+void heaterTurnOff(void) {
+   digitalWrite(heater, HIGH);
+}
+
+// Internal Fan control
+void internalFanTurnOn(void) {
+   digitalWrite(internalFan, LOW);
+}
+
+void internalFanTurnOff(void) {
+   digitalWrite(internalFan, HIGH);
+}
+
+// Fresh air Fan control
+void freshAirFanTurnOn(void) {
+   digitalWrite(freshAirFan, LOW);
+}
+
+void freshAirFanTurnOff(void) {
+   digitalWrite(freshAirFan, HIGH);
+}
+
+// Device 7 control
+void device7TurnOn(void) {
+   digitalWrite(device7, LOW);
+}
+
+void device7TurnOff(void) {
+   digitalWrite(device7, HIGH);
+}
+
+// Device 8 control
+
+void device8TurnOn(void) {
+   digitalWrite(device8, LOW);
+}
+
+void device8TurnOff(void) {
+   digitalWrite(device8, HIGH);
+}
+
+
+
 void setNewControls() {
 
   if (httpReq.indexOf("freezer=1") >= 0) {
-    freezerStatus = true;
-    digitalWrite(freezer, LOW);
+    freezerStatus = true;    
+    freezerTurnOn();
   } else if(httpReq.indexOf("freezer=0") >= 0) {
     freezerStatus = false;
-    digitalWrite(freezer, HIGH);
+    freezerTurnOff();
   }
 
   if (httpReq.indexOf("humidifier=1") >= 0) {
     humidifierStatus = true;
-    digitalWrite(humidifier, LOW);
+    humidifierTurnOn();
   } else if(httpReq.indexOf("humidifier=0") >= 0) {
     humidifierStatus = false;
-    digitalWrite(humidifier, HIGH);
+    humidifierTurnOff();
   }  
 
   if (httpReq.indexOf("deHumidifier=1") >= 0) {
     deHumidifierStatus = true;
-    digitalWrite(deHumidifier, LOW);
+    deHumidifierTurnOn();
   } else if(httpReq.indexOf("deHumidifier=0") >= 0) {
     deHumidifierStatus = false;
-    digitalWrite(deHumidifier, HIGH);
+    deHumidifierTurnOff();
   }    
 
   if (httpReq.indexOf("heater=1") >= 0) {
     heaterStatus = true;
-    digitalWrite(heater, LOW);
+    heaterTurnOn();
   } else if(httpReq.indexOf("heater=0") >= 0) {
     heaterStatus = false;
-    digitalWrite(heater, HIGH);
+    heaterTurnOff();
   }    
 
   if (httpReq.indexOf("internalFan=1") >= 0) {
     internalFanStatus = true;
-    digitalWrite(internalFan, LOW);
+    internalFanTurnOn();
   } else if(httpReq.indexOf("internalFan=0") >= 0) {
     internalFanStatus = false;
-    digitalWrite(internalFan, HIGH);
+    internalFanTurnOff();
   }   
 
   if (httpReq.indexOf("freshAirFan=1") >= 0) {
     freshAirFanStatus = true;
-    digitalWrite(freshAirFan, LOW);
+    freshAirFanTurnOn();
   } else if(httpReq.indexOf("freshAirFan=0") >= 0) {
     freshAirFanStatus = false;
-    digitalWrite(freshAirFan, HIGH);
+    freshAirFanTurnOff();
   }     
 
   if (httpReq.indexOf("dev7=1") >= 0) {
     device7Status = true;
-    digitalWrite(device7, LOW);
+    device7TurnOn();
   } else if(httpReq.indexOf("dev7=0") >= 0) {
     device7Status = false;
-    digitalWrite(device7, HIGH);
+    device7TurnOff();
   } 
 
   if (httpReq.indexOf("dev8=1") >= 0) {
     device8Status = true;
-    digitalWrite(device8, LOW);
+    device8TurnOn();
   } else if(httpReq.indexOf("dev8=0") >= 0) {
     device8Status = false;
-    digitalWrite(device8, HIGH);
+    device8TurnOff();
   }
 }
+
 // Send XML file with sensor readings
 void sendXMLFile(WiFiClient cl, float tempC, float tempF, float hum) {
 
@@ -432,7 +512,7 @@ void logToFile(fs::FS &fs, const char * path, const char * message){
       return;
     }
     
-    if(file.println("Date, Time, Temperature (F), Humidity(%)")){
+    if(file.println("Date, Time, Temperature (C), Humidity(%)")){
       Serial.println("Written the header !!");
     } else {
       Serial.println("Write failed");
@@ -698,7 +778,7 @@ void loop() {
   
   logFilePath.toCharArray(fileNameBuffer, (logFilePath.length() + 1));
   
-  String dataString = dateStr + "," +  timeStr + "," + String(f) + "," + String(h);  
+  String dataString = dateStr + "," +  timeStr + "," + String(t) + "," + String(h);  
 
   dataString.toCharArray(fileInputTextBuffer, (dataString.length() + 1));
 
@@ -808,4 +888,30 @@ void loop() {
     client.stop();
     Serial.println("Client disconnected.");    
   } // end if (client)  
+
+
+  // ---------------- Main Control loop  ----------------
+  // is Tmp  > 1.5DC + STP
+  if( t > (setTmp + OFFSET_TMP)) {
+    internalFanTurnOn();
+    freezerTurnOn();    
+  } else if(t <= (setTmp - OFFSET_TMP)) {
+    internalFanTurnOn();
+    freezerTurnOn();
+  } else {
+
+  }
+
+  // is Hum  > 5% + HSP
+  if(h > (setHum + OFFSET_HUM)) {
+    humidifierTurnOff();
+    internalFanTurnOn();
+    deHumidifierTurnOn();
+  } else if(h <= (setHum - OFFSET_HUM)) {
+    deHumidifierTurnOff();
+    humidifierTurnOn();
+    internalFanTurnOn();    
+  } else {
+
+  }
 }   

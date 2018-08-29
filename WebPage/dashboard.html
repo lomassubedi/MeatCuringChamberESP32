@@ -235,7 +235,7 @@
 
 		<form>
 			<p>					
-				Set Temperature (&degF): <input type="number" steps="any" min="0.0" max="1000.0" name="setTemperature">
+				Set Temperature (&degC): <input type="number" steps="any" min="0.0" max="1000.0" name="setTemperature">
 				<input type="button" value = "SET" onclick="setHumTmp();">
 			</p>						
 		</form>
@@ -244,16 +244,16 @@
 	</div>
 
 	<div class="dispSetHumTmp">
-		<p>Humidity Set Point:<span class="setPointHumidity"> ...</span>%RH</p> 
-		<p>Temperature Set Point:<span class="setPointTemperature"> ...</span>&degF</p> 
+		<p>Humidity Set Point: <span class="setPointHumidity"> ...</span>%RH</p> 
+		<p>Temperature Set Point: <span class="setPointTemperature"> ...</span>&degC</p> 
 	</div>
 
 	<div class="readHum">
-		<p>Current Humidity:<span class="readHumidity"> ...</span>%RH</p> 
+		<p>Current Humidity: <span class="readHumidity"> ...</span>%RH</p> 
 	</div>
 
 	<div class="readTmp">
-		<p>Current Temperature:<span class="readTemperatureC"> ...</span>&degC  <span class="readTemperatureF"> ...</span>&degF</p> 
+		<p>Current Temperature: <span class="readTemperatureC"> ...</span>&degC  <span class="readTemperatureF"> ...</span>&degF</p> 
 	</div>
 
 	<footer>
