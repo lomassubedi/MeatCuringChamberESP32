@@ -71,14 +71,20 @@
 #define BME280_ADD 0x76
 
 // Time intervals definations
-#define     REF_RATE                2000    // LCD refresh each 2 sec
-#define     INTERVAL_LOG            3000    // data logging each 3 sec
-#define     INTERVAL_SD_ERROR       5000    // SD card error disp interval
-#define     INTERVAL_SERVO_OPR      2000
+#define     REF_RATE                    2000       // LCD refresh each 2 sec
+#define     INTERVAL_LOG                3000       // data logging each 3 sec
+#define     INTERVAL_SD_ERROR           5000       // SD card error disp interval
+#define     INTERVAL_FREEZER_LAST_ON    900000UL   // Freezer 15 minutes interval 15 minutes
+#define     INTERVAL_FRESH_AIR_FAN_ON   900000UL   // Fresh Air Fan ON time interval 15 minutes
+#define     INTERVAL_FRESH_AIR_FAN_OFF  21600000UL   // Fresh Air Fan OFF time interval 6Hrs
 
 
-#define     OFFSET_TMP              1.5F
-#define     OFFSET_HUM              5.0F
+#define     DELAY_SERVO_OFF             5000        // Servo turn off delay after fan turned OFF
+#define     OFFSET_TMP                  1.5F
+#define     OFFSET_HUM                  2.5F
+#define     OFFSET_HUM_2_5              2.50F
+#define     OFFSET_HUM_5_0              5.0F
+
 
 char printBuffer[BUF_SZ];
 char timeValBuff[50];
@@ -120,6 +126,8 @@ const char internalFan = 33;
 const char freshAirFan = 32;
 const char device7 = 34;
 const char device8 = 35;
+
+
 const char servo1Pin = 12;
 const char servo2Pin = 13;
 
@@ -133,6 +141,16 @@ bool freshAirFanStatus = false;
 bool device7Status = false;
 bool device8Status = false;
 bool flagSDProblem = false;
+
+// Flag flow chart
+bool flagCoolingMode = false;
+bool flagHeatingMode = false;
+bool flagFreshAirFanOnInstance = false;
+
+// Time records 
+uint64_t freezerLastOnTime = 0;
+uint64_t freshAirFanOnTime = 0;
+uint64_t freshAirFanOffTime = 0;
 
 // vars and flags for servo 
 bool flagServCnt = false;
@@ -179,7 +197,8 @@ void freezerTurnOn(void) {
 }
 
 void freezerTurnOff(void) {
-   digitalWrite(freezer, HIGH);
+  digitalWrite(freezer, HIGH);
+  freezerLastOnTime = millis();
 }
 
 // Humidifier control
@@ -221,10 +240,12 @@ void internalFanTurnOff(void) {
 // Fresh air Fan control
 void freshAirFanTurnOn(void) {
    digitalWrite(freshAirFan, LOW);
+   freshAirFanOnTime = millis();
 }
 
 void freshAirFanTurnOff(void) {
    digitalWrite(freshAirFan, HIGH);
+   freshAirFanOffTime = millis();
 }
 
 // Device 7 control
@@ -251,19 +272,13 @@ void servoInit(void) {
   servo2.attach(servo2Pin);  
 }
 
-void move90Servo1(void) {
-  servo1.write(90);
+void openServos(void) {
+  servo1.write(30);
+  servo2.write(30);
 }
 
-void move0Servo1(void) {
+void closeServos(void) {
   servo1.write(0);
-}
-
-void move90Servo2(void) {
-  servo2.write(90);
-}
-
-void move0Servo2(void) {
   servo2.write(0);
 }
 
@@ -926,55 +941,108 @@ void loop() {
     Serial.println("Client disconnected.");    
   } // end if (client)  
 
-  
+
   // ---------------- Main Control loop  ----------------
-  // is Tmp  > 1.5DC + STP
-  if( t > (setTmp + OFFSET_TMP)) {
-    internalFanTurnOn();
-    freezerTurnOn();    
-  } else if(t <= (setTmp - OFFSET_TMP)) {
-    internalFanTurnOn();
-    freezerTurnOn();
-  } else {
-
-  }
-
-  // is Hum  > 5% + HSP
-  if(h > (setHum + OFFSET_HUM)) {
-    humidifierTurnOff();
-    internalFanTurnOn();
-    deHumidifierTurnOn();
-  } else if(h <= (setHum - OFFSET_HUM)) {
-    deHumidifierTurnOff();
-    humidifierTurnOn();
-    internalFanTurnOn();    
-  } else {
-
-  }
-
-  
-  // ---- Servo test, just working test --------
-
-  timeNowServOp = millis();
-
-  if(((timeNowServOp - timePrevServOp) / INTERVAL_SERVO_OPR) > 0) {
-    timePrevServOp = timeNowServOp;
-    
-    if(!flagServCnt) {
-      move0Servo1();
-      move90Servo2();
-      flagServCnt = true;
+  if(flagCoolingMode) {   // Cooling mode
+    // is Tmp  > 1.5DC + STP
+    if( t > (setTmp + OFFSET_TMP)) {    
+      // Check if the freezer was on before 15 minutes
+      if((millis() - freezerLastOnTime) > INTERVAL_FREEZER_LAST_ON) {
+        if(freezerStatus) {          
+          freezerTurnOn(); 
+        }
+      }
+    } else if(t <= (setTmp - OFFSET_TMP)) {
+      if(!freezerStatus) {
+        freezerTurnOff();
+      }
     } else {
-      move0Servo2();
-      move90Servo1(); 
-      flagServCnt = false;
+      // Do nothing
+    }
+  } else {     // Heating Mode
+    // is Tmp  > 1.5DC + STP
+    if( t > (setTmp + OFFSET_TMP)) {
+      if(!heaterStatus) {
+        heaterTurnOff();
+      }
+    } else if(t <= (setTmp - OFFSET_TMP)) {    
+      if(heaterStatus) {
+        heaterTurnOn();
+      }
+    } else {
+      // Do nothing
+    }
+  }
+
+  // is Hum  > 2.5% + HSP
+  if(h > (setHum + OFFSET_HUM_2_5)) {
+
+    // is Hum  > 5.0% + HSP
+    if(h > (setHum + OFFSET_HUM_5_0)) {
+
+      if(!humidifierStatus) {
+        humidifierTurnOff();
+      }
+
+      if(deHumidifierStatus) {
+        deHumidifierTurnOn();
+      }
     }
 
-    servo1.write(servAngle);    
-    servAngle += 10;
-    if(servAngle > 180) {
-      servAngle = 0;
-      servo1.write(servAngle);    
+    // is Hum  < HSP - 2.5%
+  } else if(h <= (setHum - OFFSET_HUM_2_5)) {
+
+    // is Hum  < HSP - 5.0%
+    if(h <= (setHum - OFFSET_HUM_5_0)) {
+
+      if(humidifierStatus) {
+        humidifierTurnOn();
+      }
+
+      if(deHumidifierStatus) {
+        deHumidifierTurnOff();
+      }
+    }   
+        
+  } else {
+
+  }
+
+  if(freshAirFanStatus) {   // Fresh air fan ON
+    // Is Fresh air fan ON for more than 15mins ?
+    if((millis() - freshAirFanOnTime) > INTERVAL_FRESH_AIR_FAN_ON) {
+
+      if(!freshAirFanStatus) {
+        freshAirFanTurnOff();
+        delay(DELAY_SERVO_OFF);
+        closeServos();        
+      }
+    }
+
+  } else {                  // Fresh air fan OFF
+
+    // Is Fresh air fan OFF for more than 6Hrs ?
+    if((millis() - freshAirFanOffTime) > INTERVAL_FRESH_AIR_FAN_OFF) {
+      
+      if(freshAirFanStatus) {
+        openServos();
+        freshAirFanTurnOn();        
+      }
     }
   }  
+
+  if(freezerStatus || humidifierStatus ||
+      deHumidifierStatus || heaterStatus ||
+      freshAirFanStatus || device7Status || device8Status
+      ) {
+
+    if(internalFanStatus) {
+      internalFanTurnOn();
+    }    
+  } else {
+
+    if(!internalFanStatus) {
+      internalFanTurnOff();
+    }        
+  }
 }   

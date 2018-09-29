@@ -3,3 +3,4 @@ Additional libraries used :
 https://github.com/ThingPulse/esp8266-oled-ssd1306
 https://github.com/Takatsuki0204/BME280-I2C-ESP32
 https://github.com/bblanchon/ArduinoJson
+https://github.com/jkb-git/ESP32Servo
