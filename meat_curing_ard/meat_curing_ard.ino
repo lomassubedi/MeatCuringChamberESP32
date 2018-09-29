@@ -29,8 +29,10 @@
  * Heater         -> 25
  * Internal fan   -> 33
  * Fresh air fan  -> 32
- * Device 7       -> 12
- * Device 8       -> 13
+ * Device 7       -> 34
+ * Device 8       -> 35
+ * Servo 1        -> 12
+ * Servo 2        -> 13
  * ------------------------
  */
 
@@ -46,6 +48,8 @@
 
 #include "SD.h"
 #include "FS.h"
+
+#include "ESP32_Servo.h"
 
 #define     LCD_EN
 
@@ -70,6 +74,7 @@
 #define     REF_RATE                2000    // LCD refresh each 2 sec
 #define     INTERVAL_LOG            3000    // data logging each 3 sec
 #define     INTERVAL_SD_ERROR       5000    // SD card error disp interval
+#define     INTERVAL_SERVO_OPR      2000
 
 
 #define     OFFSET_TMP              1.5F
@@ -86,11 +91,11 @@ char fileInputTextBuffer[100];
 //const char* ssid = "internets";
 //const char* password = "CLFA4ABD38";
 
-//const char* ssid = "yangobahal";
-//const char* password = "43A74C699A";
+const char* ssid = "yangobahal";
+const char* password = "43A74C699A";
 
-const char* ssid = "Bee";
-const char* password = "p@ssw0rd";
+//const char* ssid = "Bee";
+//const char* password = "p@ssw0rd";
 
 /*
 const char* ssid = "Nanook";
@@ -113,8 +118,10 @@ const char deHumidifier = 26;
 const char heater = 25;
 const char internalFan = 33;
 const char freshAirFan = 32;
-const char device7 = 12;
-const char device8 = 13;
+const char device7 = 34;
+const char device8 = 35;
+const char servo1Pin = 12;
+const char servo2Pin = 13;
 
 // Pin Status flags
 bool freezerStatus = false;
@@ -126,6 +133,12 @@ bool freshAirFanStatus = false;
 bool device7Status = false;
 bool device8Status = false;
 bool flagSDProblem = false;
+
+// vars and flags for servo 
+bool flagServCnt = false;
+uint16_t servAngle = 0;
+uint64_t timeNowServOp = 0;
+uint64_t timePrevServOp = 0;
 
 // Temperature and humidity variables
 float h = 0.0;
@@ -151,6 +164,9 @@ Adafruit_BME280 bme(SDA, SCL);
 // HTTP Client for extracting time from TimeZoneDB API
 HTTPClient http;
 
+// Servo object instantiation
+Servo servo1;
+Servo servo2;
 
 // Oled Object
 #ifdef     LCD_EN
@@ -230,7 +246,26 @@ void device8TurnOff(void) {
    digitalWrite(device8, HIGH);
 }
 
+void servoInit(void) {
+  servo1.attach(servo1Pin);
+  servo2.attach(servo2Pin);  
+}
 
+void move90Servo1(void) {
+  servo1.write(90);
+}
+
+void move0Servo1(void) {
+  servo1.write(0);
+}
+
+void move90Servo2(void) {
+  servo2.write(90);
+}
+
+void move0Servo2(void) {
+  servo2.write(0);
+}
 
 void setNewControls() {
 
@@ -667,6 +702,8 @@ void setup() {
   pinMode(device8, OUTPUT);
   digitalWrite(device8, HIGH);
 
+  servoInit();
+
 }
 
 void loop() {
@@ -889,7 +926,7 @@ void loop() {
     Serial.println("Client disconnected.");    
   } // end if (client)  
 
-
+  
   // ---------------- Main Control loop  ----------------
   // is Tmp  > 1.5DC + STP
   if( t > (setTmp + OFFSET_TMP)) {
@@ -914,4 +951,30 @@ void loop() {
   } else {
 
   }
+
+  
+  // ---- Servo test, just working test --------
+
+  timeNowServOp = millis();
+
+  if(((timeNowServOp - timePrevServOp) / INTERVAL_SERVO_OPR) > 0) {
+    timePrevServOp = timeNowServOp;
+    
+    if(!flagServCnt) {
+      move0Servo1();
+      move90Servo2();
+      flagServCnt = true;
+    } else {
+      move0Servo2();
+      move90Servo1(); 
+      flagServCnt = false;
+    }
+
+    servo1.write(servAngle);    
+    servAngle += 10;
+    if(servAngle > 180) {
+      servAngle = 0;
+      servo1.write(servAngle);    
+    }
+  }  
 }   
