@@ -132,6 +132,16 @@ bool device7Status = false;
 bool device8Status = false;
 bool flagSDProblem = false;
 
+// Relay Status flags 
+bool freezerRelayStatus = false;
+bool humidifierRelayStatus = false;
+bool deHumidifierRelayStatus = false;
+bool heaterRelayStatus = false;
+bool internalFanRelayStatus = false;
+bool freshAirFanRelayStatus = false;
+bool device7RelayStatus = false;
+bool device8RelayStatus = false;
+
 // Flag flow chart
 bool flagCoolingMode = true;
 bool flagHeatingMode = false;
@@ -189,77 +199,93 @@ Servo servo2;
 // Freezer Control
 void freezerTurnOn(void) {
    digitalWrite(freezer, LOW);
+   freezerRelayStatus = true;
 }
 
 void freezerTurnOff(void) {
   digitalWrite(freezer, HIGH);
+  freezerRelayStatus = false;
   freezerLastOnTime = millis();
 }
 
 // Humidifier control
 void humidifierTurnOn(void) {
    digitalWrite(humidifier, LOW);
+   humidifierRelayStatus = true;
 }
 
 void humidifierTurnOff(void) {
    digitalWrite(humidifier, HIGH);
+   humidifierRelayStatus = false;
 }
 
 // De Humidifier control
 void deHumidifierTurnOn(void) {
    digitalWrite(deHumidifier, LOW);
+   deHumidifierRelayStatus = true;
 }
 
 void deHumidifierTurnOff(void) {
    digitalWrite(deHumidifier, HIGH);
+   deHumidifierRelayStatus = false;
 }
 
 // Heater control
 void heaterTurnOn(void) {
    digitalWrite(heater, LOW);
+   heaterRelayStatus = true;
 }
 
 void heaterTurnOff(void) {
    digitalWrite(heater, HIGH);
+   heaterRelayStatus = false;
 }
 
 // Internal Fan control
 void internalFanTurnOn(void) {
    digitalWrite(internalFan, LOW);
+   internalFanRelayStatus = true;
 }
 
 void internalFanTurnOff(void) {
    digitalWrite(internalFan, HIGH);
+   internalFanRelayStatus = false;
 }
 
 // Fresh air Fan control
 void freshAirFanTurnOn(void) {
    digitalWrite(freshAirFan, LOW);
+   freshAirFanRelayStatus = true;
    freshAirFanOnTime = millis();
 }
 
 void freshAirFanTurnOff(void) {
    digitalWrite(freshAirFan, HIGH);
+   freshAirFanRelayStatus = false;
    freshAirFanOffTime = millis();
 }
 
 // Device 7 control
 void device7TurnOn(void) {
    digitalWrite(device7, LOW);
+   device7RelayStatus = true;
 }
 
 void device7TurnOff(void) {
    digitalWrite(device7, HIGH);
+   device7RelayStatus = false;
 }
 
 // Device 8 control
 
 void device8TurnOn(void) {
    digitalWrite(device8, LOW);
+   device8RelayStatus = true;
 }
 
 void device8TurnOff(void) {
    digitalWrite(device8, HIGH);
+   device8RelayStatus = false;
 }
 
 void servoInit(void) {
@@ -996,6 +1022,7 @@ void loop() {
 
 
   // ---------------- Main Control loop  ----------------
+  // -------- Cooling/Heating Loop ----------------------
   if(flagCoolingMode) {   // Cooling mode    
     // is Tmp  > 1.5DC + STP
     if( t > (setTmp + OFFSET_TMP)) {    
@@ -1019,7 +1046,9 @@ void loop() {
       // Do nothing
     }
   }
+  // -------- End of Cooling/Heating Loop --------------------
 
+  // -------- Humidity Loop ----------------------
   // is Hum  > 2.5% + HSP
   if(h > (setHum + OFFSET_HUM_2_5)) {
 
@@ -1043,7 +1072,11 @@ void loop() {
   } else {
 
   }
+  
+  // -------- End of Humidity Loop ----------------------
 
+
+  // -------- Fresh Air Fan Loop ----------------------
   if(freshAirFanStatus) {   // Fresh air fan ON
     // Is Fresh air fan ON for more than 15mins ?
     if(((millis() - freshAirFanOnTime) > INTERVAL_FRESH_AIR_FAN_ON) || (!flagFresAirFanEntry)) {
@@ -1063,13 +1096,16 @@ void loop() {
       freshAirFanTurnOn();        
     }
   }  
+  // -------- End of Fresh Air Fan Loop ----------------------
 
-  if(freezerStatus || humidifierStatus ||
-      deHumidifierStatus || heaterStatus ||
-      freshAirFanStatus || device7Status || device8Status
+  // -------- Internal Fan control Loop ----------------------
+  if(freezerRelayStatus || humidifierRelayStatus ||
+      deHumidifierRelayStatus || heaterRelayStatus ||
+      freshAirFanRelayStatus || device7RelayStatus || device8RelayStatus
       ) {
     internalFanTurnOn();
   } else {
     internalFanTurnOff();
   }
+  // -------- End of Internal Fan control Loop ----------------------
 }   
