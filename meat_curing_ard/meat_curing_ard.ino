@@ -52,6 +52,7 @@
 #include "ESP32_Servo.h"
 
 #define     LCD_EN
+#define     WEB_CTRL_EN
 
 #ifdef  LCD_EN
   #include "SSD1306Wire.h"
@@ -135,6 +136,11 @@ bool flagSDProblem = false;
 bool flagCoolingMode = true;
 bool flagHeatingMode = false;
 bool flagFreshAirFanOnInstance = false;
+
+// Loop control misc flags
+bool flagColModeLopEntry = false;
+bool flagFresAirFanEntry = false;
+bool flagFresAirFanOffEntry = false;
 
 // Time records 
 uint64_t freezerLastOnTime = 0;
@@ -275,67 +281,125 @@ void setNewControls() {
 
   if (httpReq.indexOf("freezer=1") >= 0) {
     freezerStatus = true;    
-    freezerTurnOn();
+    
+    #ifdef  WEB_CTRL_EN
+      freezerTurnOn();
+    #endif
+
   } else if(httpReq.indexOf("freezer=0") >= 0) {
     freezerStatus = false;
-    freezerTurnOff();
+
+    #ifdef  WEB_CTRL_EN
+      freezerTurnOff();
+    #endif
   }
 
   if (httpReq.indexOf("humidifier=1") >= 0) {
     humidifierStatus = true;
-    humidifierTurnOn();
+    
+    #ifdef  WEB_CTRL_EN
+      humidifierTurnOn();
+    #endif
+
   } else if(httpReq.indexOf("humidifier=0") >= 0) {
     humidifierStatus = false;
-    humidifierTurnOff();
+
+    #ifdef WEB_CTRL_EN
+      humidifierTurnOff();
+    #endif
+
   }  
 
   if (httpReq.indexOf("deHumidifier=1") >= 0) {
     deHumidifierStatus = true;
-    deHumidifierTurnOn();
+
+    #ifdef WEB_CTRL_EN
+      deHumidifierTurnOn();
+    #endif
+
   } else if(httpReq.indexOf("deHumidifier=0") >= 0) {
     deHumidifierStatus = false;
-    deHumidifierTurnOff();
+
+    #ifdef WEB_CTRL_EN
+      deHumidifierTurnOff();
+    #endif
   }    
 
   if (httpReq.indexOf("heater=1") >= 0) {
     heaterStatus = true;
-    heaterTurnOn();
+    
+    #ifdef WEB_CTRL_EN
+      heaterTurnOn();
+    #endif
+
   } else if(httpReq.indexOf("heater=0") >= 0) {
     heaterStatus = false;
-    heaterTurnOff();
+    
+    #ifdef WEB_CTRL_EN
+      heaterTurnOff();
+    #endif
   }    
 
   if (httpReq.indexOf("internalFan=1") >= 0) {
     internalFanStatus = true;
-    internalFanTurnOn();
+
+    #ifdef WEB_CTRL_EN
+      internalFanTurnOn();
+    #endif
+
   } else if(httpReq.indexOf("internalFan=0") >= 0) {
     internalFanStatus = false;
-    internalFanTurnOff();
+
+    #ifdef WEB_CTRL_EN
+      internalFanTurnOff();
+    #endif
   }   
 
   if (httpReq.indexOf("freshAirFan=1") >= 0) {
     freshAirFanStatus = true;
-    freshAirFanTurnOn();
+
+    #ifdef WEB_CTRL_EN
+      freshAirFanTurnOn();
+    #endif
+
   } else if(httpReq.indexOf("freshAirFan=0") >= 0) {
     freshAirFanStatus = false;
-    freshAirFanTurnOff();
+
+    #ifdef WEB_CTRL_EN
+      freshAirFanTurnOff();
+    #endif
   }     
 
   if (httpReq.indexOf("dev7=1") >= 0) {
     device7Status = true;
-    device7TurnOn();
+
+    #ifdef WEB_CTRL_EN
+      device7TurnOn();
+    #endif
+
   } else if(httpReq.indexOf("dev7=0") >= 0) {
     device7Status = false;
-    device7TurnOff();
+
+    #ifdef WEB_CTRL_EN
+      device7TurnOff();
+    #endif
   } 
 
   if (httpReq.indexOf("dev8=1") >= 0) {
     device8Status = true;
-    device8TurnOn();
+
+    #ifdef WEB_CTRL_EN
+      device8TurnOn();
+    #endif
+
   } else if(httpReq.indexOf("dev8=0") >= 0) {
     device8Status = false;
-    device8TurnOff();
+
+    #ifdef WEB_CTRL_EN
+      device8TurnOff();
+    #endif
   }
+
 }
 
 // Send XML file with sensor readings
@@ -936,28 +1000,21 @@ void loop() {
     // is Tmp  > 1.5DC + STP
     if( t > (setTmp + OFFSET_TMP)) {    
       // Check if the freezer was on before 15 minutes
-      if((millis() - freezerLastOnTime) > INTERVAL_FREEZER_LAST_ON) {
-        if(freezerStatus) {          
-          freezerTurnOn(); 
-        }
+      if(((millis() - freezerLastOnTime) > INTERVAL_FREEZER_LAST_ON) || (!flagColModeLopEntry)) {
+        flagColModeLopEntry = true;
+        freezerTurnOn(); 
       }
     } else if(t <= (setTmp - OFFSET_TMP)) {
-      if(!freezerStatus) {
-        freezerTurnOff();
-      }
+      freezerTurnOff();
     } else {
       // Do nothing
     }
   } else {     // Heating Mode
     // is Tmp  > 1.5DC + STP
     if( t > (setTmp + OFFSET_TMP)) {
-      if(!heaterStatus) {
-        heaterTurnOff();
-      }
+      heaterTurnOff();
     } else if(t <= (setTmp - OFFSET_TMP)) {    
-      if(heaterStatus) {
-        heaterTurnOn();
-      }
+      heaterTurnOn();
     } else {
       // Do nothing
     }
@@ -969,13 +1026,8 @@ void loop() {
     // is Hum  > 5.0% + HSP
     if(h > (setHum + OFFSET_HUM_5_0)) {
 
-      if(!humidifierStatus) {
-        humidifierTurnOff();
-      }
-
-      if(deHumidifierStatus) {
-        deHumidifierTurnOn();
-      }
+      humidifierTurnOff();
+      deHumidifierTurnOn();
     }
 
     // is Hum  < HSP - 2.5%
@@ -984,13 +1036,8 @@ void loop() {
     // is Hum  < HSP - 5.0%
     if(h <= (setHum - OFFSET_HUM_5_0)) {
 
-      if(humidifierStatus) {
-        humidifierTurnOn();
-      }
-
-      if(deHumidifierStatus) {
-        deHumidifierTurnOff();
-      }
+      humidifierTurnOn();
+      deHumidifierTurnOff();
     }   
         
   } else {
@@ -999,24 +1046,21 @@ void loop() {
 
   if(freshAirFanStatus) {   // Fresh air fan ON
     // Is Fresh air fan ON for more than 15mins ?
-    if((millis() - freshAirFanOnTime) > INTERVAL_FRESH_AIR_FAN_ON) {
+    if(((millis() - freshAirFanOnTime) > INTERVAL_FRESH_AIR_FAN_ON) || (!flagFresAirFanEntry)) {
+      flagFresAirFanEntry = true;
 
-      if(!freshAirFanStatus) {
-        freshAirFanTurnOff();
-        delay(DELAY_SERVO_OFF);
-        closeServos();        
-      }
+      freshAirFanTurnOff();
+      delay(DELAY_SERVO_OFF);
+      closeServos();        
     }
 
   } else {                  // Fresh air fan OFF
 
     // Is Fresh air fan OFF for more than 6Hrs ?
-    if((millis() - freshAirFanOffTime) > INTERVAL_FRESH_AIR_FAN_OFF) {
-      
-      if(freshAirFanStatus) {
-        openServos();
-        freshAirFanTurnOn();        
-      }
+    if(((millis() - freshAirFanOffTime) > INTERVAL_FRESH_AIR_FAN_OFF) || (!flagFresAirFanOffEntry)) {   
+      flagFresAirFanOffEntry = true;
+      openServos();
+      freshAirFanTurnOn();        
     }
   }  
 
@@ -1024,14 +1068,8 @@ void loop() {
       deHumidifierStatus || heaterStatus ||
       freshAirFanStatus || device7Status || device8Status
       ) {
-
-    if(internalFanStatus) {
-      internalFanTurnOn();
-    }    
+    internalFanTurnOn();
   } else {
-
-    if(!internalFanStatus) {
-      internalFanTurnOff();
-    }        
+    internalFanTurnOff();
   }
 }   
