@@ -68,11 +68,11 @@
 
 // BME280 Configuration
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define BME280_ADD 0x76
+#define BME280_ADD 0x77
 
 // Time intervals definations
 #define     REF_RATE                    2000       // LCD refresh each 2 sec
-#define     INTERVAL_LOG                3000       // data logging each 3 sec
+#define     INTERVAL_LOG                5000       // data logging each 5 sec
 #define     INTERVAL_SD_ERROR           5000       // SD card error disp interval
 #define     INTERVAL_FREEZER_LAST_ON    900000UL   // Freezer 15 minutes interval 15 minutes
 #define     INTERVAL_FRESH_AIR_FAN_ON   900000UL   // Fresh Air Fan ON time interval 15 minutes
@@ -94,19 +94,8 @@ char fileInputTextBuffer[100];
 
 // WiFi SSID and Passwords definations
 
-//const char* ssid = "internets";
-//const char* password = "CLFA4ABD38";
-
-const char* ssid = "yangobahal";
-const char* password = "43A74C699A";
-
-//const char* ssid = "Bee";
-//const char* password = "p@ssw0rd";
-
-/*
 const char* ssid = "Nanook";
 const char* password = "nanook and punter";
-*/
 
 // Name address for Open TimeZone db API
 const char* TimeZoneDBServer = "http://api.timezonedb.com"\
@@ -143,7 +132,7 @@ bool device8Status = false;
 bool flagSDProblem = false;
 
 // Flag flow chart
-bool flagCoolingMode = false;
+bool flagCoolingMode = true;
 bool flagHeatingMode = false;
 bool flagFreshAirFanOnInstance = false;
 
@@ -943,7 +932,7 @@ void loop() {
 
 
   // ---------------- Main Control loop  ----------------
-  if(flagCoolingMode) {   // Cooling mode
+  if(flagCoolingMode) {   // Cooling mode    
     // is Tmp  > 1.5DC + STP
     if( t > (setTmp + OFFSET_TMP)) {    
       // Check if the freezer was on before 15 minutes
