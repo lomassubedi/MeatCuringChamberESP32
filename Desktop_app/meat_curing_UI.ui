@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>517</width>
-    <height>350</height>
+    <width>733</width>
+    <height>386</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,7 +33,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>150</y>
+      <y>190</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -49,7 +49,7 @@
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>150</y>
+      <y>190</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -68,7 +68,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>60</y>
+      <y>100</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -136,7 +136,7 @@
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>60</y>
+      <y>100</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -152,7 +152,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>110</y>
+      <y>150</y>
       <width>121</width>
       <height>21</height>
      </rect>
@@ -165,7 +165,7 @@
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>110</y>
+      <y>150</y>
       <width>121</width>
       <height>21</height>
      </rect>
@@ -178,7 +178,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>200</y>
+      <y>240</y>
       <width>121</width>
       <height>21</height>
      </rect>
@@ -191,7 +191,7 @@
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>200</y>
+      <y>240</y>
       <width>121</width>
       <height>21</height>
      </rect>
@@ -204,7 +204,7 @@
     <property name="geometry">
      <rect>
       <x>190</x>
-      <y>40</y>
+      <y>80</y>
       <width>311</width>
       <height>201</height>
      </rect>
@@ -254,7 +254,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>60</y>
+      <y>100</y>
       <width>70</width>
       <height>17</height>
      </rect>
@@ -267,7 +267,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>80</y>
+      <y>120</y>
       <width>70</width>
       <height>17</height>
      </rect>
@@ -280,7 +280,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>120</y>
+      <y>160</y>
       <width>81</width>
       <height>17</height>
      </rect>
@@ -293,7 +293,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>140</y>
+      <y>180</y>
       <width>91</width>
       <height>21</height>
      </rect>
@@ -306,7 +306,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>180</y>
+      <y>220</y>
       <width>70</width>
       <height>17</height>
      </rect>
@@ -319,7 +319,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>160</y>
+      <y>200</y>
       <width>81</width>
       <height>17</height>
      </rect>
@@ -332,7 +332,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>200</y>
+      <y>240</y>
       <width>70</width>
       <height>17</height>
      </rect>
@@ -345,7 +345,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>40</y>
+      <y>80</y>
       <width>151</width>
       <height>201</height>
      </rect>
@@ -374,7 +374,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>260</y>
+      <y>310</y>
       <width>81</width>
       <height>16</height>
      </rect>
@@ -387,7 +387,7 @@
     <property name="geometry">
      <rect>
       <x>180</x>
-      <y>260</y>
+      <y>310</y>
       <width>61</width>
       <height>16</height>
      </rect>
@@ -400,7 +400,7 @@
     <property name="geometry">
      <rect>
       <x>340</x>
-      <y>260</y>
+      <y>310</y>
       <width>61</width>
       <height>23</height>
      </rect>
@@ -413,7 +413,7 @@
     <property name="geometry">
      <rect>
       <x>110</x>
-      <y>260</y>
+      <y>310</y>
       <width>62</width>
       <height>22</height>
      </rect>
@@ -426,7 +426,7 @@
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>260</y>
+      <y>310</y>
       <width>62</width>
       <height>22</height>
      </rect>
@@ -436,7 +436,7 @@
     <property name="geometry">
      <rect>
       <x>420</x>
-      <y>260</y>
+      <y>310</y>
       <width>61</width>
       <height>23</height>
      </rect>
@@ -445,58 +445,326 @@
      <string>Exit</string>
     </property>
    </widget>
-   <widget class="QLabel" name="labelConn">
+   <widget class="QLineEdit" name="lineEditBrokerPort">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>10</y>
-      <width>71</width>
+      <x>310</x>
+      <y>29</y>
+      <width>61</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelBrokerPort">
+    <property name="geometry">
+     <rect>
+      <x>277</x>
+      <y>29</y>
+      <width>21</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>Connectivity:</string>
+     <string>Port</string>
     </property>
    </widget>
-   <widget class="QLabel" name="labelDataLogStat">
+   <widget class="QLabel" name="labelBrokerIP">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>10</y>
+      <x>33</x>
+      <y>29</y>
       <width>81</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>Data log status:</string>
+     <string>MQTT Broker IP</string>
     </property>
    </widget>
-   <widget class="QLabel" name="labelConnVal">
+   <widget class="QLineEdit" name="lineEditBrokerIP">
     <property name="geometry">
      <rect>
-      <x>97</x>
-      <y>10</y>
+      <x>123</x>
+      <y>28</y>
+      <width>131</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButtonConnectBroker">
+    <property name="geometry">
+     <rect>
+      <x>391</x>
+      <y>28</y>
       <width>81</width>
-      <height>16</height>
+      <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>Not Connected</string>
+     <string>Connect</string>
     </property>
    </widget>
-   <widget class="QLabel" name="labelDataLogStatVal">
+   <widget class="QGroupBox" name="groupBoxDeviceStatus">
     <property name="geometry">
      <rect>
-      <x>281</x>
-      <y>12</y>
-      <width>47</width>
-      <height>13</height>
+      <x>510</x>
+      <y>10</y>
+      <width>181</width>
+      <height>161</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Disabled</string>
+    <property name="title">
+     <string>Device Status</string>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <widget class="QLabel" name="labelFreezerStatus">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Freezer</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelHumidifierStatus">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>35</y>
+       <width>51</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Humidifier</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelDehumidifierStatus">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>52</y>
+       <width>61</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Dehumidifier</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelInternalFanStatus">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>83</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Internal fan</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelFreshAirFanStatus">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>101</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Fresh air fan</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelHeaterSatus">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>70</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Heater</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelDevice7Status">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>118</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Device 7</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelDevice8Status">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>133</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Device 8</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labellabelFreezerStatusValue">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>20</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>OFF</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelHumidifierStatusValue">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>37</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>OFF</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelDehumidifierStatusValue">
+     <property name="geometry">
+      <rect>
+       <x>91</x>
+       <y>54</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>OFF</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelHeaterSatusValue">
+     <property name="geometry">
+      <rect>
+       <x>91</x>
+       <y>71</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>OFF</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelFreshAirFanStatusValue">
+     <property name="geometry">
+      <rect>
+       <x>89</x>
+       <y>104</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>OFF</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelDevice7StatusValue">
+     <property name="geometry">
+      <rect>
+       <x>89</x>
+       <y>120</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>OFF</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelDevice8StatusValue">
+     <property name="geometry">
+      <rect>
+       <x>87</x>
+       <y>135</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>OFF</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelInternalFanStatusValue">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>87</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>OFF</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>9</y>
+      <width>481</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>GroupBox</string>
     </property>
    </widget>
+   <widget class="QTextBrowser" name="textBrowserDeviceStatus">
+    <property name="geometry">
+     <rect>
+      <x>510</x>
+      <y>180</y>
+      <width>181</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="html">
+     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <zorder>groupBox</zorder>
    <zorder>groupBoxDeviceControl</zorder>
    <zorder>groupBoxTmpHumMonitor</zorder>
    <zorder>lcdNumberSetTmpVal</zorder>
@@ -520,17 +788,20 @@
    <zorder>doubleSpinBoxSetSetPointTmp</zorder>
    <zorder>doubleSpinBoxSetSetPointHum</zorder>
    <zorder>pushButtonExit</zorder>
-   <zorder>labelConn</zorder>
-   <zorder>labelDataLogStat</zorder>
-   <zorder>labelConnVal</zorder>
-   <zorder>labelDataLogStatVal</zorder>
+   <zorder>lineEditBrokerPort</zorder>
+   <zorder>labelBrokerPort</zorder>
+   <zorder>labelBrokerIP</zorder>
+   <zorder>lineEditBrokerIP</zorder>
+   <zorder>pushButtonConnectBroker</zorder>
+   <zorder>groupBoxDeviceStatus</zorder>
+   <zorder>textBrowserDeviceStatus</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>517</width>
+     <width>733</width>
      <height>21</height>
     </rect>
    </property>
@@ -538,7 +809,6 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionPref"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">

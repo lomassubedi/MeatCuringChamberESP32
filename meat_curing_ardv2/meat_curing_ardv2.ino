@@ -69,18 +69,25 @@
 
 // BME280 Configuration
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define BME280_ADD 0x77
+//#define BME280_ADD 0x77  /* 0x77 address of the sensor with Kyle*/
+#define BME280_ADD 0x76  /* 0x76 address of the sensor with Lomas */
 
 // Time intervals definations
 #define     REF_RATE                    2000       // LCD refresh each 2 sec
 #define     INTERVAL_LOG                5000       // data logging each 5 sec
 #define     INTERVAL_SD_ERROR           5000       // SD card error disp interval
-#define     INTERVAL_FREEZER_LAST_ON    900000UL   // Freezer 15 minutes interval 15 minutes
-#define     INTERVAL_FRESH_AIR_FAN_ON   900000UL   // Fresh Air Fan ON time interval 15 minutes
-#define     INTERVAL_FRESH_AIR_FAN_OFF  21600000UL   // Fresh Air Fan OFF time interval 6Hrs
+
+// #define     INTERVAL_FREEZER_LAST_ON    900000UL   // Freezer 15 minutes interval 15 minutes
+#define     INTERVAL_FREEZER_LAST_ON    300000UL
+
+// #define     INTERVAL_FRESH_AIR_FAN_ON   900000UL   // Fresh Air Fan ON time interval 15 minutes
+#define     INTERVAL_FRESH_AIR_FAN_ON   420000UL
+
+// #define     INTERVAL_FRESH_AIR_FAN_OFF  21600000UL   // Fresh Air Fan OFF time interval 6Hrs
+#define     INTERVAL_FRESH_AIR_FAN_OFF  900000UL   // Fresh Air Fan Off time interval 15 minutes
 
 
-#define     DELAY_SERVO_OFF             5000        // Servo turn off delay after fan turned OFF
+#define     DELAY_SERVO_OFF             10000        // Servo turn off delay after fan turned OFF
 #define     OFFSET_TMP                  1.5F
 #define     OFFSET_HUM                  2.5F
 #define     OFFSET_HUM_2_5              2.50F
@@ -95,8 +102,17 @@ char fileInputTextBuffer[100];
 
 // WiFi SSID and Passwords definations
 
-const char* ssid = "Nanook";
-const char* password = "nanook and punter";
+//const char* ssid = "Nanook";
+//const char* password = "nanook and punter";
+
+//const char* ssid = "yangobahal";
+//const char* password = "43A74C699A";
+
+//const char* ssid = "yangobahal";
+//const char* password = "8614481234";
+
+const char* ssid = "CAPsMAN";
+const char* password = "tarangaK0W";
 
 // Name address for Open TimeZone db API
 const char* TimeZoneDBServer = "http://api.timezonedb.com"\
@@ -104,6 +120,14 @@ const char* TimeZoneDBServer = "http://api.timezonedb.com"\
                                 "format=json&by=zone&zone=Asia/Kathmandu";
 
 // Global Variables
+
+
+// Time keeping variables
+unsigned long time_last_ref = 0;
+unsigned long time_cur_ref = 0;
+
+unsigned  long time_last_log_intrval = 0;
+unsigned  long time_cur_log_intrval = 0;
 
 // GPIO Pin defination
 const char SD_CS = 5;
@@ -116,21 +140,10 @@ const char internalFan = 33;
 const char freshAirFan = 32;
 const char device7 = 34;
 const char device8 = 35;
-
+bool flagSDProblem = false;
 
 const char servo1Pin = 12;
 const char servo2Pin = 13;
-
-// Pin Status flags
-bool freezerStatus = false;
-bool humidifierStatus = false;
-bool deHumidifierStatus = false;
-bool heaterStatus = false;
-bool internalFanStatus = false;
-bool freshAirFanStatus = false;
-bool device7Status = false;
-bool device8Status = false;
-bool flagSDProblem = false;
 
 // Relay Status flags 
 bool freezerRelayStatus = false;
@@ -303,7 +316,6 @@ void closeServos(void) {
   servo2.write(0);
 }
 
-
 #ifdef LCD_EN
 void oledInit(void) {
   
@@ -410,6 +422,7 @@ void setup() {
   
   display.display();
   delay(5000);
+
   // ----------------------------------------------------
   #endif
 
@@ -538,13 +551,21 @@ void setup() {
 
   servoInit();
 
+  // Fresh air fan turning ON initially
+  openServos();
+  freshAirFanTurnOn(); 
+
 }
 
+WiFiClient client;
 void loop() {
 
-   WiFiClient client = server.available();   // Listen for incoming clients
+   client = server.available();   // Listen for incoming clients
 
-    if(!(millis() % REF_RATE)) {
+    time_cur_ref = millis();
+    
+    if( (time_cur_ref - time_last_ref) >= REF_RATE) {
+    time_last_ref = time_cur_ref;
 
     // Reading temperature or humidity takes about 250 milliseconds!
     // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
@@ -581,22 +602,22 @@ void loop() {
 
   // In case SD is not correctly connected
   if(flagSDProblem) {
-    if(client) {
-      client.print(" ---------------------- Meat Locker status ---------------------------------- \r\n"\
-                    "Error!!!No SD card detected. Please check the wiring and restart the system !!!");
-    }
-
-    client.stop();
+    /* TODO:
+     * Send SD ERROR Message to UI     
+    */
 
     if((millis() % INTERVAL_SD_ERROR) == 0) {
       Serial.println("Error, No SD card detected. Please check the wiring and restart the system !!!");
-    }
 
-    return;
+      /* TODO:
+       * Send SD ERROR Message to UI     
+      */
+    }    
   }
-
-
-  if((millis() % INTERVAL_LOG) == 0) {
+  
+  time_cur_log_intrval = millis();
+  if((time_cur_log_intrval -  time_last_log_intrval) >= INTERVAL_LOG) {
+    time_last_log_intrval = time_cur_log_intrval;
     // configure traged server and url
     http.begin(TimeZoneDBServer);
 
@@ -661,13 +682,111 @@ void loop() {
 //  Serial.println(printBuffer);
 
  }
+  
+  // if (client) {  // if new client connects
+  //   boolean currentLineIsBlank = true;
+  //   reqIndex = 0;
+  //   while (client.connected()) {      
+  //     if (client.available()) {   // client data available to read
+  //       char c = client.read(); // read 1 byte (character) from client
+  //       httpReq += c;
 
+  //       // if the current line is blank, you got two newline characters in a row.
+  //       // that's the end of the client HTTP request, so send a response:
+  //       if (c == '\n' && currentLineIsBlank) {
+
+  //         // send a standard http response header
+  //         client.println("HTTP/1.1 200 OK");          
+
+  //         // Send XML file or Web page
+  //         // If client already on the web page, browser requests with AJAX the latest
+  //         // sensor readings (ESP32 sends the XML file)
+  //         if (httpReq.indexOf("updateData") >= 0) {
+  //           // send rest of HTTP header
+  //           client.println("Content-Type: text/xml");
+  //           client.println("Connection: keep-alive");
+  //           client.println();
+
+  //           int indxStart = httpReq.indexOf("/updateData&");
+  //           int indxEnd = httpReq.indexOf(" HTTP");
+
+  //           String updateString = httpReq.substring(indxStart + 1, indxEnd);
+            
+  //           if (updateString.indexOf("setHum=") >= 0) {
+
+  //             int indxHumStart = updateString.indexOf("setHum=");
+  //             indxHumStart += sizeof("setHum=");
+
+  //             String humStr = updateString.substring(indxHumStart, indxHumStart + 5);           
+  //             setHum = humStr.toFloat();
+
+  //             Serial.print("Humidity Set Value : ");
+  //             Serial.println(setHum);
+  //           }
+
+  //           if (updateString.indexOf("setTmp=") >= 0) {
+
+  //             int indxTmpStart = updateString.indexOf("setTmp=");
+  //             indxTmpStart += sizeof("setTmp=");
+  //             String tmpStr = updateString.substring(indxTmpStart, indxTmpStart + 5);            
+  //             setTmp = tmpStr.toFloat();
+
+  //             Serial.print("Temperature  Set Value : ");
+  //             Serial.println(setTmp);
+  //           }            
+                                    
+  //           Serial.println(updateString);                        
+  //           // Send XML file with sensor readings
+  //           sendXMLFile(client, t, f, h);
+  //         }
+
+  //         // When the client connects for the first time, send it the index.html file
+  //         // stored in the microSD card
+  //         else {  
+  //           // send rest of HTTP header
+  //           client.println("Content-Type: text/html");
+  //           client.println("Connection: keep-alive");
+  //           client.println();
+
+  //           // send web page stored in microSD card
+  //           webFile = SD.open("/dashboard.html");
+  //           if (webFile) {
+  //             while(webFile.available()) {
+  //               // send web page to client
+  //               client.write(webFile.read()); 
+  //             }
+  //             webFile.close();
+  //           }
+  //         }
+  //         break;
+  //       }
+  //       // every line of text received from the client ends with \r\n
+  //       if (c == '\n') {
+  //         // last character on line of received text
+  //         // starting new line with next character read
+  //         currentLineIsBlank = true;
+  //       } 
+  //       else if (c != '\r') {
+  //         // a text character was received from client
+  //         currentLineIsBlank = false;
+  //       }
+  //     } // end if (client.available())
+  //   } // end while (client.connected())
+  //   // Clear the header variable
+  //   httpReq = "";
+  //   // Close the connection
+  //   client.stop();
+  //   Serial.println("Client disconnected.");    
+  // } // end if (client)  
+  
+  ESP.getFreeHeap();
 
   // ---------------- Main Control loop  ----------------
   // -------- Cooling/Heating Loop ----------------------
+  
   if(flagCoolingMode) {   // Cooling mode    
     // is Tmp  > 1.5DC + STP
-    if( t > (setTmp + OFFSET_TMP)) {    
+    if( t > (setTmp + OFFSET_TMP)) { 
       // Check if the freezer was on before 15 minutes
       if(((millis() - freezerLastOnTime) > INTERVAL_FREEZER_LAST_ON) || (!flagColModeLopEntry)) {
         flagColModeLopEntry = true;
@@ -690,6 +809,7 @@ void loop() {
   }
   // -------- End of Cooling/Heating Loop --------------------
 
+  
   // -------- Humidity Loop ----------------------
   // is Hum  > 2.5% + HSP
   if(h > (setHum + OFFSET_HUM_2_5)) {
@@ -712,16 +832,16 @@ void loop() {
     }   
         
   } else {
-
+    deHumidifierTurnOff();
+    humidifierTurnOff();
   }
   
   // -------- End of Humidity Loop ----------------------
 
 
   // -------- Fresh Air Fan Loop ----------------------
-  if(freshAirFanStatus) {   // Fresh air fan ON
     // Is Fresh air fan ON for more than 15mins ?
-    if(((millis() - freshAirFanOnTime) > INTERVAL_FRESH_AIR_FAN_ON) || (!flagFresAirFanEntry)) {
+    if(((millis() - freshAirFanOnTime) > INTERVAL_FRESH_AIR_FAN_ON)) {
       flagFresAirFanEntry = true;
 
       freshAirFanTurnOff();
@@ -729,15 +849,12 @@ void loop() {
       closeServos();        
     }
 
-  } else {                  // Fresh air fan OFF
-
     // Is Fresh air fan OFF for more than 6Hrs ?
-    if(((millis() - freshAirFanOffTime) > INTERVAL_FRESH_AIR_FAN_OFF) || (!flagFresAirFanOffEntry)) {   
-      flagFresAirFanOffEntry = true;
-      openServos();
-      freshAirFanTurnOn();        
-    }
-  }  
+  //  if(((millis() - freshAirFanOffTime) > INTERVAL_FRESH_AIR_FAN_OFF)) {
+    //  flagFresAirFanOffEntry = true;
+     // openServos();
+     // freshAirFanTurnOn();        
+ //   }
   // -------- End of Fresh Air Fan Loop ----------------------
 
   // -------- Internal Fan control Loop ----------------------
@@ -749,5 +866,5 @@ void loop() {
   } else {
     internalFanTurnOff();
   }
-  // -------- End of Internal Fan control Loop ----------------------
-}   
+  // -------- End of Internal Fan control Loop ---------------------- 
+}

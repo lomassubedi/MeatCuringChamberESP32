@@ -303,6 +303,266 @@ void closeServos(void) {
   servo2.write(0);
 }
 
+void setNewControls() {
+
+  if (httpReq.indexOf("freezer=1") >= 0) {
+    freezerStatus = true;    
+    
+    #ifdef  WEB_CTRL_EN
+      freezerTurnOn();
+    #endif
+
+  } else if(httpReq.indexOf("freezer=0") >= 0) {
+    freezerStatus = false;
+
+    #ifdef  WEB_CTRL_EN
+      freezerTurnOff();
+    #endif
+  }
+
+  if (httpReq.indexOf("humidifier=1") >= 0) {
+    humidifierStatus = true;
+    
+    #ifdef  WEB_CTRL_EN
+      humidifierTurnOn();
+    #endif
+
+  } else if(httpReq.indexOf("humidifier=0") >= 0) {
+    humidifierStatus = false;
+
+    #ifdef WEB_CTRL_EN
+      humidifierTurnOff();
+    #endif
+
+  }  
+
+  if (httpReq.indexOf("deHumidifier=1") >= 0) {
+    deHumidifierStatus = true;
+
+    #ifdef WEB_CTRL_EN
+      deHumidifierTurnOn();
+    #endif
+
+  } else if(httpReq.indexOf("deHumidifier=0") >= 0) {
+    deHumidifierStatus = false;
+
+    #ifdef WEB_CTRL_EN
+      deHumidifierTurnOff();
+    #endif
+  }    
+
+  if (httpReq.indexOf("heater=1") >= 0) {
+    heaterStatus = true;
+    
+    #ifdef WEB_CTRL_EN
+      heaterTurnOn();
+    #endif
+
+  } else if(httpReq.indexOf("heater=0") >= 0) {
+    heaterStatus = false;
+    
+    #ifdef WEB_CTRL_EN
+      heaterTurnOff();
+    #endif
+  }    
+
+  if (httpReq.indexOf("internalFan=1") >= 0) {
+    internalFanStatus = true;
+
+    #ifdef WEB_CTRL_EN
+      internalFanTurnOn();
+    #endif
+
+  } else if(httpReq.indexOf("internalFan=0") >= 0) {
+    internalFanStatus = false;
+
+    #ifdef WEB_CTRL_EN
+      internalFanTurnOff();
+    #endif
+  }   
+
+  if (httpReq.indexOf("freshAirFan=1") >= 0) {
+    freshAirFanStatus = true;
+
+    #ifdef WEB_CTRL_EN
+      freshAirFanTurnOn();
+    #endif
+
+  } else if(httpReq.indexOf("freshAirFan=0") >= 0) {
+    freshAirFanStatus = false;
+
+    #ifdef WEB_CTRL_EN
+      freshAirFanTurnOff();
+    #endif
+  }     
+
+  if (httpReq.indexOf("dev7=1") >= 0) {
+    device7Status = true;
+
+    #ifdef WEB_CTRL_EN
+      device7TurnOn();
+    #endif
+
+  } else if(httpReq.indexOf("dev7=0") >= 0) {
+    device7Status = false;
+
+    #ifdef WEB_CTRL_EN
+      device7TurnOff();
+    #endif
+  } 
+
+  if (httpReq.indexOf("dev8=1") >= 0) {
+    device8Status = true;
+
+    #ifdef WEB_CTRL_EN
+      device8TurnOn();
+    #endif
+
+  } else if(httpReq.indexOf("dev8=0") >= 0) {
+    device8Status = false;
+
+    #ifdef WEB_CTRL_EN
+      device8TurnOff();
+    #endif
+  }
+
+}
+
+// Send XML file with sensor readings
+void sendXMLFile(WiFiClient cl, float tempC, float tempF, float hum) {
+
+  cl.print("<?xml version = \"1.0\" ?>");
+  cl.print("<inout>");    
+
+  // Updat temperature Celcius 
+  cl.print("<tempC>");
+  cl.print(tempC);  
+  cl.print("</tempC>");
+
+  // Update temperature deg F 
+  cl.print("<tempF>");
+  cl.print(tempF);
+  cl.print("</tempF>");
+
+  // update RH
+  cl.print("<hum>");
+  cl.print(hum);
+  cl.print("</hum>");
+
+  // Upadte set temperature value
+  cl.print("<settmp>");
+  cl.print(setTmp);
+  cl.print("</settmp>");
+
+  // Upadte set humidity value
+  cl.print("<sethum>");
+  cl.print(setHum);
+  cl.print("</sethum>");  
+
+  sprintf(printBuffer, "Humidity -> %f\tTemperature ->%f*C\t%f*f\r\n", hum, tempC, tempF);
+  Serial.print(printBuffer);  
+
+  // Check Box Device status
+  // For freezer
+  cl.print("<freezer>");
+  if (freezerStatus) {
+    cl.print("checked");
+  } else {
+    cl.print("unchecked");
+  }
+  cl.println("</freezer>");
+
+  // Humidifier
+  cl.print("<humidifier>");
+  if (humidifierStatus) {
+    cl.print("checked");
+  } else {
+    cl.print("unchecked");
+  }
+  cl.println("</humidifier>");
+
+  // De Humidifier
+  cl.print("<deHumidifier>");
+  if (deHumidifierStatus) {
+    cl.print("checked");
+  } else {
+    cl.print("unchecked");
+  }
+  cl.println("</deHumidifier>");
+
+  // Heater
+  cl.print("<heater>");
+  if (heaterStatus) {
+    cl.print("checked");
+  } else {
+    cl.print("unchecked");
+  }
+  cl.println("</heater>");  
+
+  // Internal Fan
+  cl.print("<internalFan>");
+  if (internalFanStatus) {
+    cl.print("checked");
+  } else {
+    cl.print("unchecked");
+  }
+  cl.println("</internalFan>");    
+
+  // Fresh Air Fan
+  cl.print("<freshAirFan>");
+  if (freshAirFanStatus) {
+    cl.print("checked");
+  } else {
+    cl.print("unchecked");
+  }
+  cl.println("</freshAirFan>");     
+
+  // Device 7
+  cl.print("<dev7>");
+  if (device7Status) {
+    cl.print("checked");
+  } else {
+    cl.print("unchecked");
+  }
+  cl.println("</dev7>");   
+
+  // Device 8
+  cl.print("<dev8>");
+  if (device8Status) {
+    cl.print("checked");
+  } else {
+    cl.print("unchecked");
+  }
+  cl.println("</dev8>");   
+
+  cl.print("</inout>");
+
+  #if 0
+  Serial.println("----------- XML Status -------------");
+  Serial.print("freezerStatus: ");
+  Serial.print(freezerStatus);
+
+  Serial.print(", humidifierStatus: ");
+  Serial.print(humidifierStatus);
+
+  Serial.print(", deHumidifierStatus: ");
+  Serial.print(deHumidifierStatus);
+ 
+  Serial.print(", heaterStatus: ");
+  Serial.print(heaterStatus);
+
+  Serial.print(", internalFanStatus: ");
+  Serial.print(internalFanStatus);
+
+  Serial.print(", freshAirFanStatus: ");
+  Serial.print(freshAirFanStatus);
+
+  Serial.print(", device8Status: ");
+  Serial.println(device8Status);
+
+  #endif
+
+}
 
 #ifdef LCD_EN
 void oledInit(void) {
@@ -661,6 +921,104 @@ void loop() {
 //  Serial.println(printBuffer);
 
  }
+  
+  if (client) {  // if new client connects
+    boolean currentLineIsBlank = true;
+    reqIndex = 0;
+    while (client.connected()) {      
+      if (client.available()) {   // client data available to read
+        char c = client.read(); // read 1 byte (character) from client
+        httpReq += c;
+
+        // if the current line is blank, you got two newline characters in a row.
+        // that's the end of the client HTTP request, so send a response:
+        if (c == '\n' && currentLineIsBlank) {
+
+          // send a standard http response header
+          client.println("HTTP/1.1 200 OK");          
+
+          // Send XML file or Web page
+          // If client already on the web page, browser requests with AJAX the latest
+          // sensor readings (ESP32 sends the XML file)
+          if (httpReq.indexOf("updateData") >= 0) {
+            // send rest of HTTP header
+            client.println("Content-Type: text/xml");
+            client.println("Connection: keep-alive");
+            client.println();
+
+            int indxStart = httpReq.indexOf("/updateData&");
+            int indxEnd = httpReq.indexOf(" HTTP");
+
+            String updateString = httpReq.substring(indxStart + 1, indxEnd);
+            
+            if (updateString.indexOf("setHum=") >= 0) {
+
+              int indxHumStart = updateString.indexOf("setHum=");
+              indxHumStart += sizeof("setHum=");
+
+              String humStr = updateString.substring(indxHumStart, indxHumStart + 5);           
+              setHum = humStr.toFloat();
+
+              Serial.print("Humidity Set Value : ");
+              Serial.println(setHum);
+            }
+
+            if (updateString.indexOf("setTmp=") >= 0) {
+
+              int indxTmpStart = updateString.indexOf("setTmp=");
+              indxTmpStart += sizeof("setTmp=");
+              String tmpStr = updateString.substring(indxTmpStart, indxTmpStart + 5);            
+              setTmp = tmpStr.toFloat();
+
+              Serial.print("Temperature  Set Value : ");
+              Serial.println(setTmp);
+            }            
+                                    
+            Serial.println(updateString);            
+            
+            setNewControls();
+            // Send XML file with sensor readings
+            sendXMLFile(client, t, f, h);
+          }
+
+          // When the client connects for the first time, send it the index.html file
+          // stored in the microSD card
+          else {  
+            // send rest of HTTP header
+            client.println("Content-Type: text/html");
+            client.println("Connection: keep-alive");
+            client.println();
+
+            // send web page stored in microSD card
+            webFile = SD.open("/dashboard.html");
+            if (webFile) {
+              while(webFile.available()) {
+                // send web page to client
+                client.write(webFile.read()); 
+              }
+              webFile.close();
+            }
+          }
+          break;
+        }
+        // every line of text received from the client ends with \r\n
+        if (c == '\n') {
+          // last character on line of received text
+          // starting new line with next character read
+          currentLineIsBlank = true;
+        } 
+        else if (c != '\r') {
+          // a text character was received from client
+          currentLineIsBlank = false;
+        }
+      } // end if (client.available())
+    } // end while (client.connected())
+    // Clear the header variable
+    httpReq = "";
+    // Close the connection
+    client.stop();
+    Serial.println("Client disconnected.");    
+  } // end if (client)  
 
 
   // ---------------- Main Control loop  ----------------
