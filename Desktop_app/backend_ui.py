@@ -170,14 +170,15 @@ class Main(QtWidgets.QMainWindow):
         self.flag_connected = False
 
         self.client = MqttClient(self)
-        self.client.stateChanged.connect(self.on_stateChanged)
+        # self.client.stateChanged.connect(self.on_stateChanged)
+        self.client.connected.connect(self.on_connection)
         self.client.messageSignal.connect(self.on_messageSignal)
 
         self.redColor = QtGui.QColor(255, 0, 0)
         self.blackColor = QtGui.QColor(0, 0, 0)
         self.greenColor = QtGui.QColor(0, 128, 0)
 
-        # initialize with last data
+        # initialize UI with last saved data
         try:
             with open(self.storage_file_name, 'rb') as config_data:
                 self.config_val = json.load(config_data)
@@ -209,7 +210,7 @@ class Main(QtWidgets.QMainWindow):
             try:
                 self.client.hostname = self.broker_ip
                 self.client.connectToHost()
-                self.client.subscribe("mcuring/test")
+                # self.client.subscribe("mcuring/test")                
                 print("Connected to the broker!")
                 self.event_log(self.greenColor, "Connected to MQTT Broker")
                 self.ui.pushButtonConnectBroker.setText("Disconnect")
@@ -281,19 +282,26 @@ class Main(QtWidgets.QMainWindow):
         self.ui.textBrowserDeviceStatus.append("[" + str(datetime.datetime.now().strftime('%H:%M:%S')) + "]" + log_string)
         pass
     
-    @QtCore.pyqtSlot(int)
-    def on_stateChanged(self, state):
-        if state == MqttClient.connected:
-            print(state)
-            self.client.subscribe("Hello")
-            print(" I am here !")
+    # @QtCore.pyqtSlot(int)
+    # def on_stateChanged(self, state):
+    #     if state == MqttClient.connected:
+    #         print(" I am here !")
+    #         print(state)            
+    #         self.client.subscribe("Hello")
+    #         self.client.subscribe("shok2")
 
     @QtCore.pyqtSlot(str)
     def on_messageSignal(self, msg):
         print("Mqtt message : " + msg)
         # self.ui.lcdNumberCurTmp.value(14)
         # self.ui.lcdNumberCurHum.value(98)
-        
+    
+    @QtCore.pyqtSlot()
+    def on_connection(self):
+        print("Just Connected !")
+        self.client.subscribe("Hello")
+        pass
+
 def main():
     app = QtWidgets.QApplication(sys.argv)
     window = Main()
