@@ -144,6 +144,9 @@ class MqttClient(QtCore.QObject):
         # print("on_disconnect", args)
         self.state = MqttClient.Disconnected
         self.disconnected.emit()
+    
+    def publish(self, topc, pylod):
+        self.m_client.publish(topic=topc, payload=pylod, qos=0)
 
 class Main(QtWidgets.QMainWindow):
     def __init__(self):
@@ -162,15 +165,12 @@ class Main(QtWidgets.QMainWindow):
         self.broker_ip = None
         self.broker_port = None
 
-        # self.client = mqtt.Client("UI")
-        # self.client.on_message = self.on_message
-
         self.storage_file_name = 'dat.json'
 
         self.flag_connected = False
 
         self.client = MqttClient(self)
-        # self.client.stateChanged.connect(self.on_stateChanged)
+        self.client.stateChanged.connect(self.on_stateChanged)
         self.client.messageSignal.connect(self.on_messageSignal)
 
         self.redColor = QtGui.QColor(255, 0, 0)
@@ -209,9 +209,7 @@ class Main(QtWidgets.QMainWindow):
             try:
                 self.client.hostname = self.broker_ip
                 self.client.connectToHost()
-
                 self.client.subscribe("mcuring/test")
-                # self.client.subscribe("mcuring/espReply/#", 0)
                 print("Connected to the broker!")
                 self.event_log(self.greenColor, "Connected to MQTT Broker")
                 self.ui.pushButtonConnectBroker.setText("Disconnect")
@@ -224,7 +222,6 @@ class Main(QtWidgets.QMainWindow):
                 pass
         else:
             try:
-                # self.client.disconnect()
                 self.client.disconnectFromHost()
                 print("Disconnected from the broker!")
                 self.event_log(self.redColor, "Disonnected from MQTT Broker")
@@ -283,15 +280,19 @@ class Main(QtWidgets.QMainWindow):
         self.ui.textBrowserDeviceStatus.setTextColor(color)
         self.ui.textBrowserDeviceStatus.append("[" + str(datetime.datetime.now().strftime('%H:%M:%S')) + "]" + log_string)
         pass
-
-    # @QtCore.pyqtSlot(int)
-    # def on_stateChanged(self, state):
-    #     if state == MqttClient.Connected:            
-    #         # self.client.subscribe("mcurint/test")
+    
+    @QtCore.pyqtSlot(int)
+    def on_stateChanged(self, state):
+        if state == MqttClient.connected:
+            print(state)
+            self.client.subscribe("Hello")
+            print(" I am here !")
 
     @QtCore.pyqtSlot(str)
     def on_messageSignal(self, msg):
         print("Mqtt message : " + msg)
+        # self.ui.lcdNumberCurTmp.value(14)
+        # self.ui.lcdNumberCurHum.value(98)
         
 def main():
     app = QtWidgets.QApplication(sys.argv)
