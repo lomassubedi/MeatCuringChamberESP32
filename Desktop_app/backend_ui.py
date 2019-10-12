@@ -1,6 +1,6 @@
 
-from PyQt5 import QtCore
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
+# from PyQt5 import QtWidgets, QtGui
 
 import paho.mqtt.client as mqtt
 import json
@@ -8,6 +8,7 @@ from meat_curing_mw import Ui_MeatCuringChamberMW
 from about import Ui_About
 import sys
 import datetime
+import time
 
 class MqttClient(QtCore.QObject):
     Disconnected = 0
@@ -148,12 +149,27 @@ class MqttClient(QtCore.QObject):
     def publish(self, topc, pylod):
         self.m_client.publish(topic=topc, payload=pylod, qos=0)
 
+
+
 class Main(QtWidgets.QMainWindow):
+    
+    signal_start_background_job = QtCore.pyqtSignal()
+
     def __init__(self):
         super(Main, self).__init__()
         self.ui = Ui_MeatCuringChamberMW()
         self.setFixedSize(780, 386)
         self.ui.setupUi(self)
+
+        # Thread stuffs
+        self.worker = WorkerObject()
+        self.thread = QtCore.QThread()
+        self.worker.moveToThread(self.thread)
+        self.signal_start_background_job.connect(self.worker.background_job)
+        
+        # trigger thread
+        self.thread.start()
+        self.signal_start_background_job.emit()
 
         self.ui.lcdNumberCurTmp.setStyleSheet("color: red")
         self.ui.lcdNumberCurHum.setStyleSheet("color: red")
@@ -239,7 +255,7 @@ class Main(QtWidgets.QMainWindow):
                 self.event_log(self.redColor, "Disonnected from MQTT Broker")
                 self.ui.lineEditBrokerIP.setDisabled(False)
                 self.ui.lineEditBrokerPort.setDisabled(False)
-                self.ui.pushButtonConnectBroker.setText("Connect")
+                self.ui.pushButtonConnectBroker.setText("Connect")               
                 self.flag_connected = False
             except:
                 print("Problem disconnecting")
@@ -345,13 +361,44 @@ class Main(QtWidgets.QMainWindow):
         self.client.subscribe("mcuring/status")
         pass
 
+class WorkerObject(QtCore.QObject):
+    @QtCore.pyqtSlot()
+    def background_job(self):
+
+        time_stamp = {
+            "Year":None,
+            "Month":None,
+            "Day":None,
+            "Hour":None,
+            "Minute":None,
+            "Second":None            
+        }
+        
+        # another_client = MqttClient(self)
+        # another_client.hostname = "192.168.10.101"
+        # another_client.connectToHost()
+
+        while True:
+            date_and_time = datetime.datetime.now()
+            time_stamp["Year"] = date_and_time.year
+            time_stamp["Month"] = date_and_time.month
+            time_stamp["Day"] = date_and_time.day
+            time_stamp["Hour"] = date_and_time.hour
+            time_stamp["Minute"] = date_and_time.minute
+            time_stamp["Second"] = date_and_time.second
+            print(time_stamp)
+            # json_timeStamp = json.dumps(time_stamp)
+
+            # another_client.publish("mcuring/time", json_timeStamp)
+
+            time.sleep(1)
+
 class About(QtWidgets.QDialog):
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
         self.dialog_about = Ui_About()
         self.dialog_about.setupUi(self)
         self.setFixedSize(252, 166)
-        # self.connect(self.dialog_about.pushButtonOk, QtCore.SIGNAL("clicked()"), self.close)
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
