@@ -1,1 +1,1 @@
-{"broker_ip": "192.168.10.101", "broker_port": 1883, "lastTmpSetPoint": 4, "lastHumSetPoint": 4}
+{"broker_ip": "192.168.10.101", "broker_port": 1883, "lastTmpSetPoint": 500, "lastHumSetPoint": 78}

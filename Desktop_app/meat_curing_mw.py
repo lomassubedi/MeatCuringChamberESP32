@@ -2,17 +2,19 @@
 
 # Form implementation generated from reading ui file 'meat_curing_UI.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.13.1
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MeatCuringChamberMW(object):
     def setupUi(self, MeatCuringChamberMW):
         MeatCuringChamberMW.setObjectName("MeatCuringChamberMW")
         MeatCuringChamberMW.setEnabled(True)
-        MeatCuringChamberMW.resize(733, 386)
+        MeatCuringChamberMW.resize(780, 406)
         MeatCuringChamberMW.setAutoFillBackground(False)
         MeatCuringChamberMW.setInputMethodHints(QtCore.Qt.ImhNone)
         MeatCuringChamberMW.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
@@ -48,8 +50,8 @@ class Ui_MeatCuringChamberMW(object):
         self.lcdNumberCurTmp.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.lcdNumberCurTmp.setSmallDecimalPoint(False)
         self.lcdNumberCurTmp.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
-        self.lcdNumberCurTmp.setProperty("value", 19.0)
-        self.lcdNumberCurTmp.setProperty("intValue", 19)
+        self.lcdNumberCurTmp.setProperty("value", 0.0)
+        self.lcdNumberCurTmp.setProperty("intValue", 0)
         self.lcdNumberCurTmp.setObjectName("lcdNumberCurTmp")
         self.lcdNumberCurHum = QtWidgets.QLCDNumber(self.centralwidget)
         self.lcdNumberCurHum.setGeometry(QtCore.QRect(370, 100, 121, 41))
@@ -147,7 +149,7 @@ class Ui_MeatCuringChamberMW(object):
         self.pushButtonConnectBroker.setGeometry(QtCore.QRect(391, 28, 81, 23))
         self.pushButtonConnectBroker.setObjectName("pushButtonConnectBroker")
         self.groupBoxDeviceStatus = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBoxDeviceStatus.setGeometry(QtCore.QRect(510, 10, 181, 161))
+        self.groupBoxDeviceStatus.setGeometry(QtCore.QRect(510, 10, 241, 161))
         self.groupBoxDeviceStatus.setCheckable(False)
         self.groupBoxDeviceStatus.setObjectName("groupBoxDeviceStatus")
         self.labelFreezerStatus = QtWidgets.QLabel(self.groupBoxDeviceStatus)
@@ -175,34 +177,34 @@ class Ui_MeatCuringChamberMW(object):
         self.labelDevice8Status.setGeometry(QtCore.QRect(10, 133, 71, 16))
         self.labelDevice8Status.setObjectName("labelDevice8Status")
         self.labellabelFreezerStatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus)
-        self.labellabelFreezerStatusValue.setGeometry(QtCore.QRect(90, 20, 47, 13))
+        self.labellabelFreezerStatusValue.setGeometry(QtCore.QRect(140, 20, 47, 13))
         self.labellabelFreezerStatusValue.setObjectName("labellabelFreezerStatusValue")
         self.labelHumidifierStatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus)
-        self.labelHumidifierStatusValue.setGeometry(QtCore.QRect(90, 37, 47, 13))
+        self.labelHumidifierStatusValue.setGeometry(QtCore.QRect(140, 37, 47, 13))
         self.labelHumidifierStatusValue.setObjectName("labelHumidifierStatusValue")
         self.labelDehumidifierStatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus)
-        self.labelDehumidifierStatusValue.setGeometry(QtCore.QRect(91, 54, 47, 13))
+        self.labelDehumidifierStatusValue.setGeometry(QtCore.QRect(140, 54, 47, 13))
         self.labelDehumidifierStatusValue.setObjectName("labelDehumidifierStatusValue")
         self.labelHeaterSatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus)
-        self.labelHeaterSatusValue.setGeometry(QtCore.QRect(91, 71, 47, 13))
+        self.labelHeaterSatusValue.setGeometry(QtCore.QRect(140, 71, 47, 13))
         self.labelHeaterSatusValue.setObjectName("labelHeaterSatusValue")
         self.labelFreshAirFanStatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus)
-        self.labelFreshAirFanStatusValue.setGeometry(QtCore.QRect(89, 104, 47, 13))
+        self.labelFreshAirFanStatusValue.setGeometry(QtCore.QRect(140, 104, 47, 13))
         self.labelFreshAirFanStatusValue.setObjectName("labelFreshAirFanStatusValue")
         self.labelDevice7StatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus)
-        self.labelDevice7StatusValue.setGeometry(QtCore.QRect(89, 120, 47, 13))
+        self.labelDevice7StatusValue.setGeometry(QtCore.QRect(140, 120, 47, 13))
         self.labelDevice7StatusValue.setObjectName("labelDevice7StatusValue")
         self.labelDevice8StatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus)
-        self.labelDevice8StatusValue.setGeometry(QtCore.QRect(87, 135, 47, 13))
+        self.labelDevice8StatusValue.setGeometry(QtCore.QRect(140, 135, 47, 13))
         self.labelDevice8StatusValue.setObjectName("labelDevice8StatusValue")
         self.labelInternalFanStatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus)
-        self.labelInternalFanStatusValue.setGeometry(QtCore.QRect(90, 87, 47, 13))
+        self.labelInternalFanStatusValue.setGeometry(QtCore.QRect(140, 87, 47, 13))
         self.labelInternalFanStatusValue.setObjectName("labelInternalFanStatusValue")
         self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox.setGeometry(QtCore.QRect(20, 9, 481, 61))
         self.groupBox.setObjectName("groupBox")
         self.textBrowserDeviceStatus = QtWidgets.QTextBrowser(self.centralwidget)
-        self.textBrowserDeviceStatus.setGeometry(QtCore.QRect(510, 180, 181, 151))
+        self.textBrowserDeviceStatus.setGeometry(QtCore.QRect(510, 180, 241, 161))
         self.textBrowserDeviceStatus.setObjectName("textBrowserDeviceStatus")
         self.groupBox.raise_()
         self.groupBoxDeviceControl.raise_()
@@ -237,7 +239,7 @@ class Ui_MeatCuringChamberMW(object):
         self.textBrowserDeviceStatus.raise_()
         MeatCuringChamberMW.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MeatCuringChamberMW)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 733, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 780, 21))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -302,7 +304,7 @@ class Ui_MeatCuringChamberMW(object):
         self.labelDevice7StatusValue.setText(_translate("MeatCuringChamberMW", "OFF"))
         self.labelDevice8StatusValue.setText(_translate("MeatCuringChamberMW", "OFF"))
         self.labelInternalFanStatusValue.setText(_translate("MeatCuringChamberMW", "OFF"))
-        self.groupBox.setTitle(_translate("MeatCuringChamberMW", "GroupBox"))
+        self.groupBox.setTitle(_translate("MeatCuringChamberMW", "MQTT Setup"))
         self.textBrowserDeviceStatus.setHtml(_translate("MeatCuringChamberMW", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -313,4 +315,3 @@ class Ui_MeatCuringChamberMW(object):
         self.actionPref.setText(_translate("MeatCuringChamberMW", "Preference"))
         self.actionAbout.setText(_translate("MeatCuringChamberMW", "About"))
         self.actionQuit.setText(_translate("MeatCuringChamberMW", "Quit"))
-

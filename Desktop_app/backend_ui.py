@@ -3,9 +3,9 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets, QtGui
 
 import paho.mqtt.client as mqtt
-
 import json
 from meat_curing_mw import Ui_MeatCuringChamberMW
+from about import Ui_About
 import sys
 import datetime
 
@@ -152,7 +152,7 @@ class Main(QtWidgets.QMainWindow):
     def __init__(self):
         super(Main, self).__init__()
         self.ui = Ui_MeatCuringChamberMW()
-        self.setFixedSize(733, 386)
+        self.setFixedSize(780, 386)
         self.ui.setupUi(self)
 
         self.ui.lcdNumberCurTmp.setStyleSheet("color: red")
@@ -160,6 +160,19 @@ class Main(QtWidgets.QMainWindow):
 
         self.ui.lcdNumberSetTmpVal.setStyleSheet("color: green")
         self.ui.lcdNumberSetHumVal.setStyleSheet("color: green")
+
+        self.ui.checkBoxFreezer.setDisabled(True)
+        self.ui.checkBoxHumidifier.setDisabled(True)
+        self.ui.checkBoxDehumidifier.setDisabled(True)
+        self.ui.checkBoxHeater.setDisabled(True)
+        self.ui.checkBoxInternalFan.setDisabled(True)
+        self.ui.checkBoxFreshAirFan.setDisabled(True)
+        self.ui.checkBoxDevice7.setDisabled(True)
+        self.ui.checkBoxDevice8.setDisabled(True)
+        self.ui.groupBoxDeviceControl.setDisabled(True)
+        
+        # About signal 
+        self.ui.actionAbout.triggered.connect(self.on_about)
 
         # Class wise global variabels
         self.broker_ip = None
@@ -210,8 +223,6 @@ class Main(QtWidgets.QMainWindow):
             try:
                 self.client.hostname = self.broker_ip
                 self.client.connectToHost()
-                # self.client.subscribe("mcuring/test")                
-                print("Connected to the broker!")
                 self.event_log(self.greenColor, "Connected to MQTT Broker")
                 self.ui.pushButtonConnectBroker.setText("Disconnect")
                 self.ui.lineEditBrokerIP.setDisabled(True)
@@ -232,7 +243,6 @@ class Main(QtWidgets.QMainWindow):
                 self.flag_connected = False
             except:
                 print("Problem disconnecting")
-
 
     def applySettings(self):        
         self.valTempSetPoint = self.ui.doubleSpinBoxSetSetPointTmp.value()
@@ -259,11 +269,6 @@ class Main(QtWidgets.QMainWindow):
             print("Preference file not found !")
             pass
 
-        if(self.broker_ip):
-            self.client.publish("ui/setpoint", json_set_point)
-        else:
-            print("Error connecting to the broker !")
-
     def exitApp(self):
         dict_data = {
             "broker_ip":self.ui.lineEditBrokerIP.text(),
@@ -282,25 +287,71 @@ class Main(QtWidgets.QMainWindow):
         self.ui.textBrowserDeviceStatus.append("[" + str(datetime.datetime.now().strftime('%H:%M:%S')) + "]" + log_string)
         pass
     
-    # @QtCore.pyqtSlot(int)
-    # def on_stateChanged(self, state):
-    #     if state == MqttClient.connected:
-    #         print(" I am here !")
-    #         print(state)            
-    #         self.client.subscribe("Hello")
-    #         self.client.subscribe("shok2")
+    def on_about(self):
+        tool_about = About()
+        tool_about.show()
+        tool_about.exec_()
+        pass
 
     @QtCore.pyqtSlot(str)
     def on_messageSignal(self, msg):
-        print("Mqtt message : " + msg)
-        # self.ui.lcdNumberCurTmp.value(14)
-        # self.ui.lcdNumberCurHum.value(98)
+        sensorStat = json.loads(msg)
+        self.ui.lcdNumberCurTmp.display(sensorStat["curTemp"])
+        self.ui.lcdNumberCurHum.display(sensorStat["curHum"])    
+
+        if(sensorStat["Freezer"]):            
+            self.ui.labellabelFreezerStatusValue.setText("ON")
+        else:
+            self.ui.labellabelFreezerStatusValue.setText("OFF")
+
+        if(sensorStat["Humidifier"]):
+            self.ui.labelHumidifierStatusValue.setText("ON")
+        else:
+            self.ui.labelHumidifierStatusValue.setText("OFF")
+        
+        if(sensorStat["Dehumidifier"]):
+            self.ui.labelDehumidifierStatusValue.setText("ON")
+        else:
+            self.ui.labelDehumidifierStatusValue.setText("OFF")
+        
+        if(sensorStat["Heater"]):
+            self.ui.labelHeaterSatusValue.setText("ON")
+        else:
+            self.ui.labelHeaterSatusValue.setText("OFF")
+        
+        if(sensorStat["InternalFan"]):
+            self.ui.labelInternalFanStatusValue.setText("ON")
+        else:
+            self.ui.labelInternalFanStatusValue.setText("OFF")
+        
+        if(sensorStat["FreshAirFan"]):
+            self.ui.labelFreshAirFanStatusValue.setText("ON")
+        else:
+            self.ui.labelFreshAirFanStatusValue.setText("OFF")
+
+        if(sensorStat["Device7"]):
+            self.ui.labelDevice7StatusValue.setText("ON")
+        else:
+            self.ui.labelDevice7StatusValue.setText("OFF")
+        
+        if(sensorStat["Device8"]):
+            self.ui.labelDevice8StatusValue.setText("ON")
+        else:
+            self.ui.labelDevice8StatusValue.setText("OFF")
     
     @QtCore.pyqtSlot()
     def on_connection(self):
-        print("Just Connected !")
-        self.client.subscribe("Hello")
+        print("Connected to the broker!")
+        self.client.subscribe("mcuring/status")
         pass
+
+class About(QtWidgets.QDialog):
+    def __init__(self):
+        QtWidgets.QDialog.__init__(self)
+        self.dialog_about = Ui_About()
+        self.dialog_about.setupUi(self)
+        self.setFixedSize(252, 166)
+        # self.connect(self.dialog_about.pushButtonOk, QtCore.SIGNAL("clicked()"), self.close)
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
