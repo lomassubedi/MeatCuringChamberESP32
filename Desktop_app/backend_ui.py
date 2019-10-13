@@ -161,6 +161,10 @@ class Main(QtWidgets.QMainWindow):
         self.setFixedSize(780, 386)
         self.ui.setupUi(self)
 
+        # Class wise global variabels
+        self.broker_ip = None
+        self.broker_port = None
+
         # Thread stuffs
         self.worker = WorkerObject()
         self.thread = QtCore.QThread()
@@ -190,9 +194,9 @@ class Main(QtWidgets.QMainWindow):
         # About signal 
         self.ui.actionAbout.triggered.connect(self.on_about)
 
-        # Class wise global variabels
-        self.broker_ip = None
-        self.broker_port = None
+        # # Class wise global variabels
+        # self.broker_ip = None
+        # self.broker_port = None
 
         self.storage_file_name = 'dat.json'
 
@@ -374,9 +378,11 @@ class WorkerObject(QtCore.QObject):
             "Second":None            
         }
         
-        # another_client = MqttClient(self)
-        # another_client.hostname = "192.168.10.101"
-        # another_client.connectToHost()
+        another_client = MqttClient(self)
+        # another_client.hostname = "192.168.43.1"
+        another_client.hostname = "192.168.10.101"
+        # another_client.hostname = a
+        another_client.connectToHost()
 
         while True:
             date_and_time = datetime.datetime.now()
@@ -386,11 +392,12 @@ class WorkerObject(QtCore.QObject):
             time_stamp["Hour"] = date_and_time.hour
             time_stamp["Minute"] = date_and_time.minute
             time_stamp["Second"] = date_and_time.second
+            
             print(time_stamp)
-            # json_timeStamp = json.dumps(time_stamp)
 
-            # another_client.publish("mcuring/time", json_timeStamp)
-
+            json_timeStamp = json.dumps(time_stamp)
+            another_client.publish("mcuring/time", json_timeStamp)
+            # TODO access client object from Main class and publish message
             time.sleep(1)
 
 class About(QtWidgets.QDialog):
