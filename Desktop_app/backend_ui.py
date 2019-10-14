@@ -166,14 +166,10 @@ class Main(QtWidgets.QMainWindow):
         self.broker_port = None
 
         # Thread stuffs
-        self.worker = WorkerObject()
-        self.thread = QtCore.QThread()
-        self.worker.moveToThread(self.thread)
-        self.signal_start_background_job.connect(self.worker.background_job)
-        
-        # trigger thread
-        self.thread.start()
-        self.signal_start_background_job.emit()
+        # self.worker = WorkerObject()
+        # self.thread = QtCore.QThread()
+        # self.worker.moveToThread(self.thread)
+        # self.signal_start_background_job.connect(self.worker.background_job)    
 
         self.ui.lcdNumberCurTmp.setStyleSheet("color: red")
         self.ui.lcdNumberCurHum.setStyleSheet("color: red")
@@ -193,10 +189,6 @@ class Main(QtWidgets.QMainWindow):
         
         # About signal 
         self.ui.actionAbout.triggered.connect(self.on_about)
-
-        # # Class wise global variabels
-        # self.broker_ip = None
-        # self.broker_port = None
 
         self.storage_file_name = 'dat.json'
 
@@ -248,6 +240,11 @@ class Main(QtWidgets.QMainWindow):
                 self.ui.lineEditBrokerIP.setDisabled(True)
                 self.ui.lineEditBrokerPort.setDisabled(True)
                 self.flag_connected = True
+
+                # trigger thread
+                # self.thread.start()
+                # self.signal_start_background_job.emit()           
+
                 pass
             except TimeoutError:
                 print("Timeout Error: Could not connect to the broker! Please check IP and Port and connect again!")
@@ -315,8 +312,6 @@ class Main(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(str)
     def on_messageSignal(self, msg):
-        print("I am here !")
-        print(msg)
         
         sensorStat = json.loads(msg)
         print(sensorStat)
@@ -337,38 +332,38 @@ class Main(QtWidgets.QMainWindow):
             self.ui.labelDehumidifierStatusValue.setText("ON")
         else:
             self.ui.labelDehumidifierStatusValue.setText("OFF")
+                    
+        if(sensorStat["Htr"]):
+            self.ui.labelHeaterSatusValue.setText("ON")
+        else:
+            self.ui.labelHeaterSatusValue.setText("OFF")
         
-        # if(sensorStat["Htr"]):
-        #     self.ui.labelHeaterSatusValue.setText("ON")
-        # else:
-        #     self.ui.labelHeaterSatusValue.setText("OFF")
+        if(sensorStat["IFan"]):
+            self.ui.labelInternalFanStatusValue.setText("ON")
+        else:
+            self.ui.labelInternalFanStatusValue.setText("OFF")
         
-        # if(sensorStat["IFan"]):
-        #     self.ui.labelInternalFanStatusValue.setText("ON")
-        # else:
-        #     self.ui.labelInternalFanStatusValue.setText("OFF")
-        
-        # if(sensorStat["FFan"]):
-        #     self.ui.labelFreshAirFanStatusValue.setText("ON")
-        # else:
-        #     self.ui.labelFreshAirFanStatusValue.setText("OFF")
+        if(sensorStat["FFan"]):
+            self.ui.labelFreshAirFanStatusValue.setText("ON")
+        else:
+            self.ui.labelFreshAirFanStatusValue.setText("OFF")
 
-        # if(sensorStat["Dev7"]):
-        #     self.ui.labelDevice7StatusValue.setText("ON")
-        # else:
-        #     self.ui.labelDevice7StatusValue.setText("OFF")
+        if(sensorStat["Dev7"]):
+            self.ui.labelDevice7StatusValue.setText("ON")
+        else:
+            self.ui.labelDevice7StatusValue.setText("OFF")
         
-        # if(sensorStat["Dev8"]):
-        #     self.ui.labelDevice8StatusValue.setText("ON")
-        # else:
-        #     self.ui.labelDevice8StatusValue.setText("OFF")
+        if(sensorStat["Dev8"]):
+            self.ui.labelDevice8StatusValue.setText("ON")
+        else:
+            self.ui.labelDevice8StatusValue.setText("OFF")
 
     @QtCore.pyqtSlot()
     def on_connection(self):
         print("Connected to the broker!")
         self.client.subscribe("mcuring/status")
         pass
-
+'''
 class WorkerObject(QtCore.QObject):
     @QtCore.pyqtSlot()
     def background_job(self):
@@ -382,12 +377,12 @@ class WorkerObject(QtCore.QObject):
             "Second":None            
         }
         
-        another_client = MqttClient(self)
+        # another_client = MqttClient(self)
         # another_client.hostname = "192.168.43.1"
         # another_client.hostname = "192.168.100.233"
-        another_client.hostname = "192.168.1.15"
+        # another_client.hostname = "192.168.1.15"
         # another_client.hostname = a
-        another_client.connectToHost()
+        # another_client.connectToHost()
 
         while True:
             date_and_time = datetime.datetime.now()
@@ -401,9 +396,11 @@ class WorkerObject(QtCore.QObject):
             # print(time_stamp)
 
             json_timeStamp = json.dumps(time_stamp)
-            another_client.publish("mcuring/time", json_timeStamp)
+            Main().client.publish("mcuring/time", json_timeStamp)
+            print(a)
             # TODO access client object from Main class and publish message
             time.sleep(1)
+'''
 
 class About(QtWidgets.QDialog):
     def __init__(self):

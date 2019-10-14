@@ -685,7 +685,7 @@ void loop() {
       doc["Dev8"] = device8RelayStatus;
 
       size_t n = serializeJson(doc, statusValue);
-      Serial.println(statusValue);
+//      Serial.println(statusValue);
       client.publish(topicStatus, statusValue);
 
       #ifdef LCD_EN
@@ -837,7 +837,6 @@ void loop() {
   }
   
   // -------- End of Humidity Loop ----------------------
-
 
   // -------- Fresh Air Fan Loop ----------------------
     // Is Fresh air fan ON for more than 15mins ?
