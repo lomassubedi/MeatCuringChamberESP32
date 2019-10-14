@@ -37,7 +37,6 @@
  */
 
 #include <WiFi.h>
-
 #include <PubSubClient.h>
 #include <SPI.h>
 #include <Wire.h>
@@ -53,6 +52,8 @@
 #define     LCD_EN
 #define     WEB_CTRL_EN
 // #define     SD_EN
+
+
 
 #ifdef SD_EN
 #include "SD.h"
@@ -353,7 +354,7 @@ void oledPrintScreen(const char * str) {
 
 }
 
-void refrestDisp(IPAddress servIP, float tempF, float hum) {
+void refrestDisp(IPAddress servIP, float tmp, float hum) {
 
   display.clear();
   
@@ -374,7 +375,7 @@ void refrestDisp(IPAddress servIP, float tempF, float hum) {
 
   // Display temperature humidyty data
   String tmpHum = String("T:");
-  tmpHum += String(tempF, 2);
+  tmpHum += String(tmp, 2);
   tmpHum += String(" | H:");
   tmpHum += String(hum, 2);
 
@@ -669,10 +670,10 @@ void loop() {
       sprintf(printBuffer, "Humidity -> %f%\tTemperature ->%f*C\t%f*f\r\n", h, t, f);
       Serial.print(printBuffer);
 
-      StaticJsonDocument<500> doc;
-      char statusValue[500];
+      StaticJsonDocument<256> doc;
+      char statusValue[256];
 
-      doc["curTemp"] = f;
+      doc["curTemp"] = t;
       doc["curHum"] = h;
       doc["Frez"] = freezerRelayStatus;
       doc["Hum"] = humidifierRelayStatus;
@@ -688,7 +689,7 @@ void loop() {
       client.publish(topicStatus, statusValue);
 
       #ifdef LCD_EN
-        refrestDisp(WiFi.localIP(), f, h);
+        refrestDisp(WiFi.localIP(), t, h);
       #endif
     }    
   }
@@ -779,7 +780,7 @@ void loop() {
   
   ESP.getFreeHeap();
 
-  #if 0
+  #if 1
   // ---------------- Main Control loop  ----------------
   // -------- Cooling/Heating Loop ----------------------
   

@@ -197,7 +197,7 @@ class Ui_MeatCuringChamberMW(object):
         self.labelDevice8StatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus)
         self.labelDevice8StatusValue.setGeometry(QtCore.QRect(140, 135, 47, 13))
         self.labelDevice8StatusValue.setObjectName("labelDevice8StatusValue")
-        self.labelInternalFanStatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus)
+        self.labelInternalFanStatusValue = QtWidgets.QLabel(self.groupBoxDeviceStatus) 
         self.labelInternalFanStatusValue.setGeometry(QtCore.QRect(140, 87, 47, 13))
         self.labelInternalFanStatusValue.setObjectName("labelInternalFanStatusValue")
         self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
