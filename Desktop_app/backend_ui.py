@@ -315,50 +315,54 @@ class Main(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(str)
     def on_messageSignal(self, msg):
+        print("I am here !")
+        print(msg)
+        
         sensorStat = json.loads(msg)
+        print(sensorStat)
         self.ui.lcdNumberCurTmp.display(sensorStat["curTemp"])
         self.ui.lcdNumberCurHum.display(sensorStat["curHum"])    
 
-        if(sensorStat["Freezer"]):            
+        if(sensorStat["Frez"]):            
             self.ui.labellabelFreezerStatusValue.setText("ON")
         else:
             self.ui.labellabelFreezerStatusValue.setText("OFF")
 
-        if(sensorStat["Humidifier"]):
+        if(sensorStat["Hum"]):
             self.ui.labelHumidifierStatusValue.setText("ON")
         else:
             self.ui.labelHumidifierStatusValue.setText("OFF")
         
-        if(sensorStat["Dehumidifier"]):
+        if(sensorStat["Dhum"]):
             self.ui.labelDehumidifierStatusValue.setText("ON")
         else:
             self.ui.labelDehumidifierStatusValue.setText("OFF")
         
-        if(sensorStat["Heater"]):
-            self.ui.labelHeaterSatusValue.setText("ON")
-        else:
-            self.ui.labelHeaterSatusValue.setText("OFF")
+        # if(sensorStat["Htr"]):
+        #     self.ui.labelHeaterSatusValue.setText("ON")
+        # else:
+        #     self.ui.labelHeaterSatusValue.setText("OFF")
         
-        if(sensorStat["InternalFan"]):
-            self.ui.labelInternalFanStatusValue.setText("ON")
-        else:
-            self.ui.labelInternalFanStatusValue.setText("OFF")
+        # if(sensorStat["IFan"]):
+        #     self.ui.labelInternalFanStatusValue.setText("ON")
+        # else:
+        #     self.ui.labelInternalFanStatusValue.setText("OFF")
         
-        if(sensorStat["FreshAirFan"]):
-            self.ui.labelFreshAirFanStatusValue.setText("ON")
-        else:
-            self.ui.labelFreshAirFanStatusValue.setText("OFF")
+        # if(sensorStat["FFan"]):
+        #     self.ui.labelFreshAirFanStatusValue.setText("ON")
+        # else:
+        #     self.ui.labelFreshAirFanStatusValue.setText("OFF")
 
-        if(sensorStat["Device7"]):
-            self.ui.labelDevice7StatusValue.setText("ON")
-        else:
-            self.ui.labelDevice7StatusValue.setText("OFF")
+        # if(sensorStat["Dev7"]):
+        #     self.ui.labelDevice7StatusValue.setText("ON")
+        # else:
+        #     self.ui.labelDevice7StatusValue.setText("OFF")
         
-        if(sensorStat["Device8"]):
-            self.ui.labelDevice8StatusValue.setText("ON")
-        else:
-            self.ui.labelDevice8StatusValue.setText("OFF")
-    
+        # if(sensorStat["Dev8"]):
+        #     self.ui.labelDevice8StatusValue.setText("ON")
+        # else:
+        #     self.ui.labelDevice8StatusValue.setText("OFF")
+
     @QtCore.pyqtSlot()
     def on_connection(self):
         print("Connected to the broker!")
@@ -380,7 +384,8 @@ class WorkerObject(QtCore.QObject):
         
         another_client = MqttClient(self)
         # another_client.hostname = "192.168.43.1"
-        another_client.hostname = "192.168.10.101"
+        # another_client.hostname = "192.168.100.233"
+        another_client.hostname = "192.168.1.15"
         # another_client.hostname = a
         another_client.connectToHost()
 
@@ -393,7 +398,7 @@ class WorkerObject(QtCore.QObject):
             time_stamp["Minute"] = date_and_time.minute
             time_stamp["Second"] = date_and_time.second
             
-            print(time_stamp)
+            # print(time_stamp)
 
             json_timeStamp = json.dumps(time_stamp)
             another_client.publish("mcuring/time", json_timeStamp)

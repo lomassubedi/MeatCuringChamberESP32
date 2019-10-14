@@ -114,11 +114,17 @@ char fileInputTextBuffer[100];
 //const char* ssid = "CAPsMAN";
 //const char* password = "tarangaK0W";
 
-const char* ssid = "HONGSHI";
-const char* password = "digicom123";
+//const char* ssid = "HONGSHI";
+//const char* password = "digicom123";
+
+//const char* ssid = "yangobahal";
+//const char* password = "8614481234";
+
+const char* ssid = "LSD";
+const char* password = "N3pal@12345";
 
 //MQTT Broker address
-const char* mqtt_server = "192.168.10.101";
+const char* mqtt_server = "192.168.1.15";
 
 // Global Variables
 // MQTT Topic constants
@@ -380,6 +386,14 @@ void refrestDisp(IPAddress servIP, float tempF, float hum) {
 
 // MQTT Call back routine
 void callback(char* topic, byte* payload, unsigned int length) {
+  /* MQTT message print */
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (int i=0;i<length;i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
 
   if(!strcmp(topic, topicSetPoint)) {
 
@@ -656,22 +670,22 @@ void loop() {
       Serial.print(printBuffer);
 
       StaticJsonDocument<500> doc;
-      char statusValue[1000];
+      char statusValue[500];
 
-      doc["curTemp"] = t;
+      doc["curTemp"] = f;
       doc["curHum"] = h;
-      doc["Freezer"] = freezerRelayStatus;
-      doc["Humidifier"] = humidifierRelayStatus;
-      doc["Dehumidifier"] = deHumidifierRelayStatus;
-      doc["Heater"] = heaterRelayStatus;
-      doc["InternalFan"] = internalFanRelayStatus;
-      doc["FreshAirFan"] = freshAirFanRelayStatus;
-      doc["Device7"] = device7RelayStatus;
-      doc["Device8"] = device8RelayStatus;
+      doc["Frez"] = freezerRelayStatus;
+      doc["Hum"] = humidifierRelayStatus;
+      doc["Dhum"] = deHumidifierRelayStatus;
+      doc["Htr"] = heaterRelayStatus;
+      doc["IFan"] = internalFanRelayStatus;
+      doc["FFan"] = freshAirFanRelayStatus;
+      doc["Dev7"] = device7RelayStatus;
+      doc["Dev8"] = device8RelayStatus;
 
       size_t n = serializeJson(doc, statusValue);
-//      Serial.println(statusValue);
-      client.publish(topicStatus, statusValue, n);
+      Serial.println(statusValue);
+      client.publish(topicStatus, statusValue);
 
       #ifdef LCD_EN
         refrestDisp(WiFi.localIP(), f, h);
