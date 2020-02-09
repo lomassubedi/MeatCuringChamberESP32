@@ -6,6 +6,7 @@ import paho.mqtt.client as mqtt
 import json
 from meat_curing_mw import Ui_MeatCuringChamberMW
 from about import Ui_About
+from data_logger_UI import Ui_DataLoggerSetting
 import sys
 import datetime
 import time
@@ -189,6 +190,7 @@ class Main(QtWidgets.QMainWindow):
         
         # About signal 
         self.ui.actionAbout.triggered.connect(self.on_about)
+        self.ui.actionData_Logging.triggered.connect(self.on_dataLogger)
 
         self.storage_file_name = 'dat.json'
 
@@ -309,6 +311,10 @@ class Main(QtWidgets.QMainWindow):
         tool_about.show()
         tool_about.exec_()
         pass
+    def on_dataLogger(self):
+        tool_dataLogger = DataLogger()
+        tool_dataLogger.show()
+        tool_dataLogger.exec_()
 
     @QtCore.pyqtSlot(str)
     def on_messageSignal(self, msg):
@@ -408,6 +414,46 @@ class About(QtWidgets.QDialog):
         self.dialog_about = Ui_About()
         self.dialog_about.setupUi(self)
         self.setFixedSize(252, 166)
+
+class DataLogger(QtWidgets.QDialog):
+    def __init__(self):
+        QtWidgets.QDialog.__init__(self)
+        self.dtlUI = Ui_DataLoggerSetting()
+        self.dtlUI.setupUi(self)
+
+        self.dtlUI.pushButtonApply.clicked.connect(self.apply_dilg)
+        self.dtlUI.pushButtonExit.clicked.connect(self.exit_window)
+
+        self.data_file_name = 'dat.json'
+        self.config_val = None
+
+        # initialize Dialogue with last saved data
+        try:
+            with open(self.data_file_name, 'rb') as config_path:
+                self.config_val = json.load(config_path)
+                config_path.close()            
+                print(self.config_val)
+                self.dtlUI.lineEditBrowsePath.setText(self.config_val["log_path"])
+        except:
+            print("Could not find the file !")
+            pass
+        
+
+    def apply_dilg(self):
+
+        self.config_val["log_path"] = self.dtlUI.lineEditBrowsePath.text()
+
+        print(self.config_val)
+        with open(self.data_file_name, 'wb') as configFile:
+            config_file_updated = json.dumps(self.config_val)
+            configFile.write(config_file_updated.encode())
+            configFile.close()                
+        pass
+        
+
+    def exit_window(self):
+        self.close()
+        pass        
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

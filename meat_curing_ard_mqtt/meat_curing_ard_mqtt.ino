@@ -121,11 +121,14 @@ char fileInputTextBuffer[100];
 //const char* ssid = "yangobahal";
 //const char* password = "8614481234";
 
-const char* ssid = "LSD";
-const char* password = "N3pal@12345";
+//const char* ssid = "LSD";
+//const char* password = "N3pal@12345";
+
+const char* ssid = "Bee";
+const char* password = "NOp@ssw0rd";
 
 //MQTT Broker address
-const char* mqtt_server = "192.168.1.15";
+const char* mqtt_server = "192.168.1.102";
 
 // Global Variables
 // MQTT Topic constants
