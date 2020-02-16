@@ -10,6 +10,13 @@ from data_logger_UI import Ui_DataLoggerSetting
 import sys
 import datetime
 import time
+import csv
+
+#global CSV header defination 
+fieldNames = ['Time Stamp', 'Temperature(degC)', 'Humidity(%)', 
+'Operation Mode', 'Freezer', 'Humidifier', 'Dehumidifier', 'Heater', 
+'Internal Fan', 'Freshair Fan', 'Device 7', 'Device 8']
+log_fileName = None
 
 class MqttClient(QtCore.QObject):
     Disconnected = 0
@@ -193,7 +200,6 @@ class Main(QtWidgets.QMainWindow):
         self.ui.actionData_Logging.triggered.connect(self.on_dataLogger)
 
         self.storage_file_name = 'dat.json'
-
         self.flag_connected = False
 
         self.client = MqttClient(self)
@@ -210,11 +216,22 @@ class Main(QtWidgets.QMainWindow):
             with open(self.storage_file_name, 'rb') as config_data:
                 self.config_val = json.load(config_data)
                 config_data.close()
+                print(self.config_val)
             
             self.ui.lineEditBrokerIP.setText(self.config_val["broker_ip"])
             self.ui.lineEditBrokerPort.setText(str(self.config_val["broker_port"]))
             self.ui.lcdNumberSetTmpVal.setProperty("value", self.config_val["lastTmpSetPoint"])
             self.ui.lcdNumberSetHumVal.setProperty("value", self.config_val["lastHumSetPoint"])
+            if(self.config_val["lastOpnHtnMde"]):                
+                self.ui.radioButtonHeatingMode.setChecked(True)
+                if(self.ui.radioButtonCoolingMode.isChecked()):
+                    self.ui.radioButtonCoolingMode.toggle()
+            else:
+                self.ui.radioButtonCoolingMode.setChecked(True)
+                if(self.ui.radioButtonHeatingMode.isChecked()):
+                    self.ui.radioButtonHeatingMode.toggle()
+            
+            self.log_file_path_main = self.config_val["log_path"]
         except:
             print("Could not find the file !")
             pass
@@ -223,7 +240,9 @@ class Main(QtWidgets.QMainWindow):
         self.ui.actionQuit.triggered.connect(self.exitApp)
         self.ui.pushButtonConnectBroker.clicked.connect(self.connectBroker)
         self.ui.pushButtonSetSetpointApply.clicked.connect(self.applySettings)
-        self.ui.pushButtonExit.clicked.connect(self.exitApp)
+        self.ui.pushButtonExit.clicked.connect(self.exitApp)        
+        self.ui.radioButtonHeatingMode.toggled.connect(self.changeMode)
+        
 
     def connectBroker(self):
 
@@ -266,13 +285,20 @@ class Main(QtWidgets.QMainWindow):
     def applySettings(self):        
         self.valTempSetPoint = self.ui.doubleSpinBoxSetSetPointTmp.value()
         self.valHumSetPoint = self.ui.doubleSpinBoxSetSetPointHum.value()
+        if(self.ui.radioButtonHeatingMode.isChecked()):
+            self.valOpnModeHeating = True
+        else:
+            self.valOpnModeHeating = False
+            pass           
+         
         self.ui.lcdNumberSetTmpVal.setProperty("value", self.valTempSetPoint)
         self.ui.lcdNumberSetHumVal.setProperty("value", self.valHumSetPoint)
         self.event_log(self.blackColor, str("New Setpoint, T: " + str(self.valTempSetPoint) + " H: " + str(self.valHumSetPoint)))
 
         self.dict_setpoint = {
             "tmpSetPoint": self.valTempSetPoint,
-            "humSetPoint":self.valHumSetPoint
+            "humSetPoint":self.valHumSetPoint,
+            "opnHtnMde":self.valOpnModeHeating
         }
 
         json_set_point = json.dumps(self.dict_setpoint)
@@ -289,17 +315,33 @@ class Main(QtWidgets.QMainWindow):
             pass
 
     def exitApp(self):
+
+        if(self.ui.radioButtonHeatingMode.isChecked()):
+            self.valOpnModeHeating = True
+        else:
+            self.valOpnModeHeating = False
+            pass    
+
         dict_data = {
             "broker_ip":self.ui.lineEditBrokerIP.text(),
             "broker_port":int(self.ui.lineEditBrokerPort.text()),
             "lastTmpSetPoint":self.ui.lcdNumberSetTmpVal.intValue(),
-            "lastHumSetPoint":self.ui.lcdNumberSetHumVal.intValue()
+            "lastHumSetPoint":self.ui.lcdNumberSetHumVal.intValue(),
+            "lastOpnHtnMde":self.valOpnModeHeating,
+            "log_path":self.log_file_path_main
         }
         dict_data_json_dump = json.dumps(dict_data)
         with open(self.storage_file_name, 'wb') as last_val:
             last_val.write(dict_data_json_dump.encode())
             last_val.close()
         sys.exit()
+
+    def changeMode(self):           
+            if(self.ui.radioButtonHeatingMode.isChecked()):
+                self.event_log(self.blackColor, "Heating mode selected!")
+
+            if(self.ui.radioButtonCoolingMode.isChecked()):
+                self.event_log(self.blackColor, "Cooling mode selected!")
 
     def event_log(self, color, log_string):
         self.ui.textBrowserDeviceStatus.setTextColor(color)
@@ -321,6 +363,31 @@ class Main(QtWidgets.QMainWindow):
         
         sensorStat = json.loads(msg)
         print(sensorStat)
+
+        #log data :
+        
+        with open(self.storage_file_name, 'rb') as config_data:
+            self.config_val = json.load(config_data)
+            config_data.close()
+            print(self.config_val)
+        
+        with open(self.config_val["log_path"], 'a') as logFile:
+            writer = csv.DictWriter(logFile, fieldnames=fieldNames)
+            writer.writerow({'Time Stamp':str(datetime.datetime.now().strftime('%D-%H:%M:%S')), 
+            'Temperature(degC)':sensorStat["curTemp"], 
+            'Humidity(%)':sensorStat["curHum"], 
+            'Operation Mode':None,
+            'Freezer':sensorStat["Frez"],
+            'Humidifier':sensorStat["Hum"],
+            'Dehumidifier':sensorStat["Dhum"],
+            'Heater':sensorStat["Htr"], 
+            'Internal Fan':sensorStat["IFan"],
+            'Freshair Fan':sensorStat["FFan"],
+            'Device 7':sensorStat["Dev7"],
+            'Device 8':sensorStat["Dev8"]
+            })
+            logFile.close()
+
         self.ui.lcdNumberCurTmp.display(sensorStat["curTemp"])
         self.ui.lcdNumberCurHum.display(sensorStat["curHum"])    
 
@@ -415,17 +482,19 @@ class About(QtWidgets.QDialog):
         self.dialog_about.setupUi(self)
         self.setFixedSize(252, 166)
 
-class DataLogger(QtWidgets.QDialog):
+class DataLogger(QtWidgets.QDialog): #, QtWidgets.QFileDialog
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
         self.dtlUI = Ui_DataLoggerSetting()
         self.dtlUI.setupUi(self)
 
+        self.dtlUI.pushButtonBrowse.clicked.connect(self.file_dilg)
         self.dtlUI.pushButtonApply.clicked.connect(self.apply_dilg)
         self.dtlUI.pushButtonExit.clicked.connect(self.exit_window)
 
         self.data_file_name = 'dat.json'
         self.config_val = None
+        self.log_filename = None
 
         # initialize Dialogue with last saved data
         try:
@@ -437,19 +506,27 @@ class DataLogger(QtWidgets.QDialog):
         except:
             print("Could not find the file !")
             pass
-        
+    
+    def file_dilg(self):
+        self.log_filename = QtWidgets.QFileDialog.getSaveFileName(self, "Select log file ","", '*.csv')
+        self.config_val["log_path"] = str(self.log_filename[0])
+        self.dtlUI.lineEditBrowsePath.setText(self.config_val["log_path"])
 
     def apply_dilg(self):
 
         self.config_val["log_path"] = self.dtlUI.lineEditBrowsePath.text()
+        #creat the file
+        with open(self.config_val["log_path"], 'w+') as logFile:
+            writer = csv.DictWriter(logFile, fieldnames=fieldNames)
+            writer.writeheader()
+            logFile.close()
 
         print(self.config_val)
         with open(self.data_file_name, 'wb') as configFile:
             config_file_updated = json.dumps(self.config_val)
             configFile.write(config_file_updated.encode())
             configFile.close()                
-        pass
-        
+        pass        
 
     def exit_window(self):
         self.close()

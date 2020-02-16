@@ -1,1 +1,1 @@
-{"broker_ip": "192.168.1.101", "broker_port": 1883, "lastTmpSetPoint": 7, "lastHumSetPoint": 70, "log_path": "Hello there !"}
+{"broker_ip": "192.168.1.101", "broker_port": 1883, "lastTmpSetPoint": 44, "lastHumSetPoint": 36, "lastOpnHtnMde": false, "log_path": null}
