@@ -157,8 +157,6 @@ class MqttClient(QtCore.QObject):
     def publish(self, topc, pylod):
         self.m_client.publish(topic=topc, payload=pylod, qos=0)
 
-
-
 class Main(QtWidgets.QMainWindow):
     
     signal_start_background_job = QtCore.pyqtSignal()
@@ -200,6 +198,7 @@ class Main(QtWidgets.QMainWindow):
         self.ui.actionData_Logging.triggered.connect(self.on_dataLogger)
 
         self.storage_file_name = 'dat.json'
+        self.log_file_path_main = None
         self.flag_connected = False
 
         self.client = MqttClient(self)
@@ -212,29 +211,29 @@ class Main(QtWidgets.QMainWindow):
         self.greenColor = QtGui.QColor(0, 128, 0)
 
         # initialize UI with last saved data
-        try:
-            with open(self.storage_file_name, 'rb') as config_data:
-                self.config_val = json.load(config_data)
-                config_data.close()
-                print(self.config_val)
-            
-            self.ui.lineEditBrokerIP.setText(self.config_val["broker_ip"])
-            self.ui.lineEditBrokerPort.setText(str(self.config_val["broker_port"]))
-            self.ui.lcdNumberSetTmpVal.setProperty("value", self.config_val["lastTmpSetPoint"])
-            self.ui.lcdNumberSetHumVal.setProperty("value", self.config_val["lastHumSetPoint"])
-            if(self.config_val["lastOpnHtnMde"]):                
-                self.ui.radioButtonHeatingMode.setChecked(True)
-                if(self.ui.radioButtonCoolingMode.isChecked()):
-                    self.ui.radioButtonCoolingMode.toggle()
-            else:
-                self.ui.radioButtonCoolingMode.setChecked(True)
-                if(self.ui.radioButtonHeatingMode.isChecked()):
-                    self.ui.radioButtonHeatingMode.toggle()
-            
-            self.log_file_path_main = self.config_val["log_path"]
-        except:
-            print("Could not find the file !")
-            pass
+        # try:
+        with open(self.storage_file_name, 'rb') as config_data:
+            self.config_val = json.load(config_data)
+            config_data.close()
+            print("Data Saved on File : " + str(self.config_val))
+        
+        self.ui.lineEditBrokerIP.setText(self.config_val["broker_ip"])
+        self.ui.lineEditBrokerPort.setText(str(self.config_val["broker_port"]))
+        self.ui.lcdNumberSetTmpVal.setProperty("value", self.config_val["lastTmpSetPoint"])
+        self.ui.lcdNumberSetHumVal.setProperty("value", self.config_val["lastHumSetPoint"])
+        if(self.config_val["lastOpnHtnMde"]):                
+            self.ui.radioButtonHeatingMode.setChecked(True)
+            if(self.ui.radioButtonCoolingMode.isChecked()):
+                self.ui.radioButtonCoolingMode.toggle()
+        else:
+            self.ui.radioButtonCoolingMode.setChecked(True)
+            if(self.ui.radioButtonHeatingMode.isChecked()):
+                self.ui.radioButtonHeatingMode.toggle()
+        
+        self.log_file_path_main = self.config_val["log_path"]
+        # except:
+        #     print("Could not find the file !")
+        #     pass
 
         ''' Signals '''
         self.ui.actionQuit.triggered.connect(self.exitApp)
@@ -320,7 +319,11 @@ class Main(QtWidgets.QMainWindow):
             self.valOpnModeHeating = True
         else:
             self.valOpnModeHeating = False
-            pass    
+            pass            
+
+        with open(self.storage_file_name, 'rb') as last_val_tmp:
+            last_val_tmp_json = json.load(last_val_tmp)
+            last_val_tmp.close()
 
         dict_data = {
             "broker_ip":self.ui.lineEditBrokerIP.text(),
@@ -328,9 +331,10 @@ class Main(QtWidgets.QMainWindow):
             "lastTmpSetPoint":self.ui.lcdNumberSetTmpVal.intValue(),
             "lastHumSetPoint":self.ui.lcdNumberSetHumVal.intValue(),
             "lastOpnHtnMde":self.valOpnModeHeating,
-            "log_path":self.log_file_path_main
+            "log_path":last_val_tmp_json["log_path"]
         }
         dict_data_json_dump = json.dumps(dict_data)
+        print("Data On exit : " + dict_data_json_dump)
         with open(self.storage_file_name, 'wb') as last_val:
             last_val.write(dict_data_json_dump.encode())
             last_val.close()
@@ -364,8 +368,7 @@ class Main(QtWidgets.QMainWindow):
         sensorStat = json.loads(msg)
         print(sensorStat)
 
-        #log data :
-        
+        #log data :        
         with open(self.storage_file_name, 'rb') as config_data:
             self.config_val = json.load(config_data)
             config_data.close()
@@ -493,7 +496,7 @@ class DataLogger(QtWidgets.QDialog): #, QtWidgets.QFileDialog
         self.dtlUI.pushButtonExit.clicked.connect(self.exit_window)
 
         self.data_file_name = 'dat.json'
-        self.config_val = None
+        self.log_file = None
         self.log_filename = None
 
         # initialize Dialogue with last saved data
@@ -501,7 +504,7 @@ class DataLogger(QtWidgets.QDialog): #, QtWidgets.QFileDialog
             with open(self.data_file_name, 'rb') as config_path:
                 self.config_val = json.load(config_path)
                 config_path.close()            
-                print(self.config_val)
+                # print("Data Saved on File : " + self.config_val)
                 self.dtlUI.lineEditBrowsePath.setText(self.config_val["log_path"])
         except:
             print("Could not find the file !")
