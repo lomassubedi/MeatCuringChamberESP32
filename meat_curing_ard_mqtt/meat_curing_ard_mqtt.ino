@@ -112,23 +112,12 @@ char fileInputTextBuffer[100];
 //const char* ssid = "Nanook";
 //const char* password = "nanook and punter";
 
-//const char* ssid = "CAPsMAN";
-//const char* password = "tarangaK0W";
-
-//const char* ssid = "HONGSHI";
-//const char* password = "digicom123";
-
-//const char* ssid = "yangobahal";
-//const char* password = "8614481234";
-
-//const char* ssid = "LSD";
-//const char* password = "N3pal@12345";
-
 const char* ssid = "Bee";
 const char* password = "NOp@ssw0rd";
 
 //MQTT Broker address
-const char* mqtt_server = "192.168.1.102";
+//const char* mqtt_server = "192.168.50.51";
+const char* mqtt_server = "192.168.1.107";
 
 // Global Variables
 // MQTT Topic constants
@@ -170,7 +159,7 @@ bool device7RelayStatus = false;
 bool device8RelayStatus = false;
 
 // Flag flow chart
-bool flagCoolingMode = true;
+bool flagCoolingMode = false;
 bool flagHeatingMode = false;
 bool flagFreshAirFanOnInstance = false;
 
@@ -412,6 +401,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   setTmp = doc["tmpSetPoint"];
   setHum = doc["humSetPoint"];
+  flagHeatingMode = doc["opnHtnMde"];
+  
+  if(flagHeatingMode == true) {
+    flagCoolingMode = false;
+  } else {
+    flagCoolingMode = true;
+  }
 
   // Print values.
   Serial.print("Temperature Setpoint ");  
@@ -670,7 +666,7 @@ void loop() {
       // ----------------------------------------------------
     } else {
 
-      sprintf(printBuffer, "Humidity -> %f%\tTemperature ->%f*C\t%f*f\r\n", h, t, f);
+      sprintf(printBuffer, "Humidity -> %f%\tTemperature ->%f*C\t%f*f\tOperationMode:%s\r\n", h, t, f, flagCoolingMode?"Cooling":"Heating");
       Serial.print(printBuffer);
 
       StaticJsonDocument<256> doc;
@@ -794,6 +790,7 @@ void loop() {
       if(((millis() - freezerLastOnTime) > INTERVAL_FREEZER_LAST_ON) || (!flagColModeLopEntry)) {
         flagColModeLopEntry = true;
         freezerTurnOn(); 
+        Serial.println("Inside freezer turn ON Loop");
       }
     } else if(t <= (setTmp - OFFSET_TMP)) {
       freezerTurnOff();
@@ -852,11 +849,11 @@ void loop() {
     }
 
     // Is Fresh air fan OFF for more than 6Hrs ?
-  //  if(((millis() - freshAirFanOffTime) > INTERVAL_FRESH_AIR_FAN_OFF)) {
-    //  flagFresAirFanOffEntry = true;
-     // openServos();
-     // freshAirFanTurnOn();        
- //   }
+    if(((millis() - freshAirFanOffTime) > INTERVAL_FRESH_AIR_FAN_OFF)) {
+      flagFresAirFanOffEntry = true;
+      openServos();
+      freshAirFanTurnOn();        
+    }
   // -------- End of Fresh Air Fan Loop ----------------------
 
   // -------- Internal Fan control Loop ----------------------

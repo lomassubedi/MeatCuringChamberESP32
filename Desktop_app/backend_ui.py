@@ -13,8 +13,8 @@ import time
 import csv
 
 #global CSV header defination 
-fieldNames = ['Time Stamp', 'Temperature(degC)', 'Humidity(%)', 
-'Operation Mode', 'Freezer', 'Humidifier', 'Dehumidifier', 'Heater', 
+fieldNames = ['Time Stamp', 'Temperature(degC)', 'Humidity(%)',
+'Freezer', 'Humidifier', 'Dehumidifier', 'Heater', 
 'Internal Fan', 'Freshair Fan', 'Device 7', 'Device 8']
 log_fileName = None
 
@@ -374,12 +374,12 @@ class Main(QtWidgets.QMainWindow):
             config_data.close()
             print(self.config_val)
         
-        with open(self.config_val["log_path"], 'a') as logFile:
+        with open(self.config_val["log_path"], 'a', newline='') as logFile:
             writer = csv.DictWriter(logFile, fieldnames=fieldNames)
             writer.writerow({'Time Stamp':str(datetime.datetime.now().strftime('%D-%H:%M:%S')), 
             'Temperature(degC)':sensorStat["curTemp"], 
             'Humidity(%)':sensorStat["curHum"], 
-            'Operation Mode':None,
+            # 'Operation Mode':None,
             'Freezer':sensorStat["Frez"],
             'Humidifier':sensorStat["Hum"],
             'Dehumidifier':sensorStat["Dhum"],
@@ -519,7 +519,7 @@ class DataLogger(QtWidgets.QDialog): #, QtWidgets.QFileDialog
 
         self.config_val["log_path"] = self.dtlUI.lineEditBrowsePath.text()
         #creat the file
-        with open(self.config_val["log_path"], 'w+') as logFile:
+        with open(self.config_val["log_path"], 'w+', newline='') as logFile:
             writer = csv.DictWriter(logFile, fieldnames=fieldNames)
             writer.writeheader()
             logFile.close()

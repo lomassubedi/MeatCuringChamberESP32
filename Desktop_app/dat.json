@@ -1,1 +1,1 @@
-{"broker_ip": "192.168.1.101", "broker_port": 1883, "lastTmpSetPoint": 23, "lastHumSetPoint": 76, "lastOpnHtnMde": true, "log_path": "C:/Users/lomas/Desktop/kyle_ui_test/log_file.csv"}
+{"broker_ip": "192.168.1.107", "broker_port": 1883, "lastTmpSetPoint": 36, "lastHumSetPoint": 69, "lastOpnHtnMde": false, "log_path": "C:/Users/lomas/Desktop/kyle_ui_test/log_file.csv"}
